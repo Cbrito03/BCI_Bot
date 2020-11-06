@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>Estadisticas - MenuBot - V.4.0</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/estilos_personalizados.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../js/JQuery/dataTable/jquery.dataTables.min.css">
+
+
+    <!-- Custom styles for this template -->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../js/daterangepicker/daterangepicker.css" />
+
+    <link rel="stylesheet" href="../js/Alert_Confirm/jquery-confirm.css">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      <a class="navbar-brand col-sm-3 col-md-3 mr-0" href="#">Estadisticas</a>
+      
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link" id="cerrar_login" href="../">Salir</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="se-pre-con"></div>
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              
+              <li class="nav-item"><br>
+                <select class="custom-select" id="select_pais">
+                  <option value="" selected>Seleccione pais</option>                  
+                </select>
+              </li>
+              <li class="nav-item"><br>
+                <select class="custom-select" id="select_rrss">
+                  <option value="General" selected>Seleccione una red social</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="Twitter">Twitter</option>
+                   <option value="General">General</option>               
+                </select>
+              </li>
+              <li class="nav-item"><br>
+                <select class="custom-select" id="select_tipo">
+                  <option value="" selected>Seleccione tipo</option>
+                  <option value="op">Opciones</option>
+                  <option value="in">Interacciones</option>
+                </select>
+              </li>
+              <li class="nav-item"><br>
+                <input type="text" readonly="readonly" class="form-control" name="fecha" id="Rfecha"/>
+              </li>
+              <li class="nav-item"><br>
+                <button type="button" class="btn btn-primary caraga_reporte" onclick="">Generar</button>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-9 pt-3 px-4">
+          
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom ">
+            <h1 class="h2" id="titulo">Estadisticas</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <button class="descargar_excel" onclick="exportTableToExcel('tbl_int_exc')">
+                <img src="../assets/img/excel.png" alt="x" width="50px" height="50px" />
+              </button>
+            </div>
+          </div>
+          <div class="cargando" id="cargando"></div>
+          <div id="pagination"></div><br>
+          <div id="tabla_reporte" name="tabla_reporte" class="" ></div>
+
+          <div id="tabla_reporte_excel" name="tabla_reporte_excel" hidden="true"></div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../js/JQuery/jquery-3.4.1.min.js"></script>
+    <script src="../assets/js/vendor/popper.min.js"></script>
+    <script src="../dist/js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+
+    <script type="text/javascript" src="../js/JQuery/jquery.session.js"></script>
+
+    <script src="../assets/js/feather.min.js"></script>
+    
+    <script src="../js/Alert_Confirm/jquery-confirm.js"></script>
+    <script type="text/javascript" src="../js/JQuery/dataTable/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" src="../js/JQuery/pagination/pagination.js"></script>
+
+    <script type="text/javascript" src="../js/daterangepicker/moment.min.js"></script>
+    <script type="text/javascript" src="../js/daterangepicker/daterangepicker.min.js"></script>
+   
+    <script type="text/javascript" src="../js/login.js"></script>
+    <script type="text/javascript" src="../js/config.js"></script>
+    <script type="text/javascript" src="../js/reportes.js"></script>    
+
+    <script>
+      feather.replace()
+    </script>
+
+  </body>
+</html>
