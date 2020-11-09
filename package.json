@@ -1,7 +1,7 @@
 {
-  "name": "BCI_Bot",
+  "name": "bci_bot",
   "version": "1.0.0",
-  "description": "BOT BCI",
+  "description": "Bot BCI Conversation, haciendo uso de autenticación Sinacofi y EPA",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,31 +11,32 @@
     "REST",
     "NodeJS"
   ],
-  "author": "Carlos Brito",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cbrito03/BCI_Bot.git"
+  },
+  "author": "Ing. Carlos Brito",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cbrito03/BCI_Bot/issues"
+  },
+  "homepage": "https://github.com/Cbrito03/BCI_Bot#readme",
   "dependencies": {
     "async": "^3.2.0",
-    "axios": "^0.20.0",
+    "axios": "^0.21.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
-    "bootstrap": "^4.5.3",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "easy-soap-request": "^3.5.0",
     "express": "^4.17.1",
-    "express-generator": "^4.16.1",
-    "jquery": "^3.5.1",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
     "localStorage": "^1.0.4",
-    "moment": "^2.27.0",
+    "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
-    "mongoose": "^5.10.11",
-    "node-localstorage": "^2.1.5",
-    "poppers.js": "^1.16.1",
-    "pug": "^3.0.0",
+    "mongoose": "^5.10.13",
     "request": "^2.88.2",
-    "soap": "^0.34.0",
-    "soap-web-client": "0.0.2",
-    "xml2json": "^0.12.0"
+    "util": "^0.12.3"
   },
   "engines": {
     "node": "^10.19.0",
