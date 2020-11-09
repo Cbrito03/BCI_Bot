@@ -1,0 +1,129 @@
+	body{
+		    line-height: 1.3!important;
+	}
+
+    .form-signin{
+
+	    background: #f8f9fa;
+	    border-radius: 15px;
+	    border: solid 2px #e71225;
+
+    }
+    .static {
+		position: absolute;
+		background-color: #EF3829 !important;
+    	color: #fff;
+	}
+
+	.first-col {
+		padding-left: 150px!important;
+		min-width: 350px;
+		font-size: 13pt;
+		text-align: center;
+	}
+	.contenido
+	{
+		min-width: 200px;
+		  font-size: 13pt;
+		  text-align: center;
+	}
+	.fecha
+	{
+		min-width: 150px;
+	    font-weight: bold;
+	    text-align: center;
+	}
+	#tr_int
+	{
+		text-align: center;
+		  font-size: 13pt;
+	}
+	.intercciones
+	{
+	  	padding-left: 150px!important;
+		min-width: 150px;
+	    text-align: center;
+		  font-size: 13pt;
+	}
+	.fuera_hor
+	{
+		min-width: 200px;
+	    text-align: center;
+		font-size: 13pt;
+
+	}
+
+	.table thead th{
+		background-color: #EF3829 !important;
+    	color: #fff;
+	}
+	.bg-dark {
+	    background-color: #ef3829!important;
+	}
+	.navbar-dark .navbar-nav .nav-link {
+	    color: rgb(255, 255, 255)!important;
+	    font-weight: bold!important;
+	}
+	.descargar_excel
+	{
+		display: none;
+		padding: 0!important;
+		background-color: none!important;
+		border: 0!important;
+
+	}
+	.descargar_excel:show
+	{
+		display: none;
+		padding: 0!important;
+		background-color: none!important;
+		border: 0!important;
+		
+	}
+
+
+	::-webkit-scrollbar {
+	    -webkit-appearance: none;
+	}
+
+	::-webkit-scrollbar:vertical {
+	    width:10px;
+	}
+
+	::-webkit-scrollbar-button:increment,::-webkit-scrollbar-button {
+	    display: none;
+	} 
+
+	::-webkit-scrollbar:horizontal {
+	    height: 10px;
+	}
+
+	::-webkit-scrollbar-thumb {
+	    background-color: #797979;
+	    border-radius: 20px;
+	    border: 2px solid #f1f2f3;
+	}
+
+	::-webkit-scrollbar-track {
+	    border-radius: 10px;  
+	}
+
+	.se-pre-con{
+		position: fixed;
+		left: 0px;
+		top: 0px;
+		width: 100%;
+		height: 100%;
+		z-index: 9999;
+		background: url(../assets/img/loader7.gif) center no-repeat #545b6240;
+	}
+	.cargando{
+	    position: relative;
+	    display: none;
+	    width: 100%;    
+	    height: 80vh;
+	    z-index: 9999;
+	    background: url(../assets/img/carga.gif) center no-repeat #545b6240;
+	    /* float: right; */
+	    position: 20%;
+	}
