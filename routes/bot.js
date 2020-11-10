@@ -52,11 +52,13 @@ router.post('/message', async (req, res) => {
   
   var horarios = await controlador.funciones.validarHorario();  
 
-  console.log("[BCI] :: [message] :: [horarios] :: ", horarios.status);
+  console.log("[BCI] :: [message] :: [horarios] :: " + horarios.status);
 
   var msj_inicial = await controlador.funciones.cargar_msj_incial();
 
   var msj_cliente = await controlador.funciones.cargar_mensajes();
+
+  var msj_no_cliente = await controlador.funciones.cargar_no_cliente();
 
   var msj_aut_exitosa = await controlador.funciones.cargar_aut_exitoso();
 
@@ -84,7 +86,7 @@ router.post('/message', async (req, res) => {
                 {
                   var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
 
-                  if(valida_vigencia)
+                  if(valida_vigencia === true)
                   {
                     resultado.action = msj_aut_exitosa.action;
                     resultado.timeoutInactivity = 9999;
@@ -98,6 +100,13 @@ router.post('/message', async (req, res) => {
 
                     localStorage.clear();
                   }
+                  else if(valida_vigencia === 99)
+                  {
+                    resultado.action = msj_no_cliente.action;
+                    resultado.messages.push(msj_no_cliente.messages[0]);
+
+                    localStorage.clear();
+                  }  
                   else
                   {
                     resultado.action = msj_inicial.action;
@@ -112,7 +121,7 @@ router.post('/message', async (req, res) => {
                 {
                   var pregunta_rut = localStorage.getItem("pregunta_rut"+conversationID).split(",");
 
-                  console.log("pregunta_rut :: ", pregunta_rut);
+                  console.log("pregunta_rut :: " + pregunta_rut);
 
                   if(pregunta_rut[0] == "rut" && pregunta_rut[1] == "false" )
                   {
@@ -160,9 +169,7 @@ router.post('/message', async (req, res) => {
                     {
                       var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
-                      var axios_CEDU = await controlador.funciones.preguntas_sinacofi_CEDU(respuesta_rut, mensaje);                       
-
-                      console.log("[axios_CEDU]", axios_CEDU);
+                      var axios_CEDU = await controlador.funciones.preguntas_sinacofi_CEDU(respuesta_rut, mensaje);
 
                       if(axios_CEDU.status)
                       {
@@ -243,7 +250,6 @@ router.post('/message', async (req, res) => {
                   // Intentos
                   if(pregunta_rut[0] === "intentar" && pregunta_rut[1] == "true" && (mensaje.toLowerCase() == "si" || mensaje.toLowerCase() == "ok"))
                   {
-                    console.log();
                     resultado.action = msj_preguntas_rut.action;
                     resultado.action.saveHistory = false;
                     resultado.messages.push(msj_preguntas_rut.messages[0]);
@@ -253,7 +259,8 @@ router.post('/message', async (req, res) => {
                   
                   if(pregunta_rut[0] === "intentar" && mensaje.toLowerCase() != "si" && mensaje.toLowerCase() != "ok")
                   {
-                    console.log("entro a intentar con un no", mensaje , mensaje.toLowerCase() != "si" || mensaje.toLowerCase() != "ok");
+                    console.log("entro a intentar con un no :: " + mensaje +" :: "+  mensaje.toLowerCase() != "si" || mensaje.toLowerCase() != "ok");
+                    
                     resultado.action = msj_aut_exitosa.action;
                     resultado.timeoutInactivity = 9999;
                     resultado.messages.push(msj_aut_exitosa.messages[1]);

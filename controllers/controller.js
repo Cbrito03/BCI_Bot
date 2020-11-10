@@ -90,6 +90,19 @@ var funciones = {
 
 	    return obj;
     },
+    cargar_no_cliente: async function()
+    {
+    	var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 2});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
     cargar_aut_exitoso: async function()
     {
     	var obj = "";
@@ -149,9 +162,7 @@ var funciones = {
     },
     preguntas_sinacofi_CEDU: async function(rut, numSerie)
 	{
-		var obj = {};
-
-		console.log("[preguntas_sinacofi_CEDU] :: RUT :: ",rut, " :: Serie :: ", numSerie );	
+		var obj = {};	
 
 		var data = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://sinacofi.cl/WebServices">'+
 						"<soapenv:Header/>"+
@@ -181,9 +192,7 @@ var funciones = {
 			data: data
         };
 
-        var resultado_axios = await axios(options);        
-
-        //console.log("[Resultado Cliente] :: ", resultado_axios);
+        var resultado_axios = await axios(options);
         
         if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
         {
@@ -191,7 +200,7 @@ var funciones = {
 
         	var consultaResult = result_json.Envelope.Body.ConsultaResponse.ConsultaResult.codigoRetorno;
 
-        	console.log("[Resultado Cliente] :: [consultaResult] :: ", consultaResult);
+        	console.log("[Resultado Cliente] :: [consultaResult] :: [OK] :: " + consultaResult.status);
 
         	obj.status = true;
         	obj.result = consultaResult
@@ -250,12 +259,12 @@ var funciones = {
     },
     valida_vigencia: async function(num)
     {
-    	console.log("[valida_vigencia] :: [NUM] :: ", num);
+    	console.log("[valida_vigencia] :: [NUM] :: ", num, typeof num);
 
     	var resultado = false;
 
     	var data = {
-    		 "phone": "56990156951" // num
+    		 "phone": num // num
     	};		
 
 		var options = {
@@ -265,31 +274,47 @@ var funciones = {
 				'Content-Type':'application/json',
 				'Authorization': config.authorization
 			},
-			data: data //JSON.stringify({"phone":"56990156951"});
+			data: data
         };
 
-        var resultado_axios = await axios(options);
+        console.log("[valida_vigencia] :: [options] :: ", options);
 
-        if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
+        //var resultado_axios = await axios(options).catch(error=>{});
+
+        await axios(options).then(function (response)
         {
-        	resultado = resultado_axios.data.authValidity
-        }
+		  //console.log("[valida_vigencia] :: [response] :: ",response);
+		  	resultado_axios = response;
 
-        console.log("[valida_vigencia] :: [resultado] :: ",resultado);
+		  	if(response.status == 200 && response.statusText == 'OK')
+	        {
+	        	resultado = response.data.authValidity;	        	
+	        }
+		})
+		.catch(function (error)
+		{
+			resultado_axios = error;
+			console.log("[valida_vigencia] :: [resultado_axios] :: "+resultado_axios.response.status);
+        	console.log("[valida_vigencia] :: [resultado_axios] :: "+resultado_axios.response.data);
+
+        	resultado = resultado_axios.response.data.code;
+		});
+
+        console.log("[valida_vigencia] :: [resultado] :: " + resultado);
 
         return resultado;
     },
     update_vigencia: async function(num,rut)
     {
-    	console.log("[update_vigencia] :: [NUM] :: ", num," :: [RUT] :: ", rut);
+    	console.log("[update_vigencia] :: [NUM] :: " + num+" :: [RUT] :: "+ rut);
 
     	var resultado = false;
 
     	var data = {
-    		"idPerson": "bci:18584333-5", //"bci:"+rut,
-		    "phone": "56990156951", // num,
+    		"idPerson": "bci:"+rut,
+		    "phone": num,
 		    "validity": 1
-    	};		
+    	};    	
 
 		var options = {
         	method : 'POST',
@@ -301,16 +326,28 @@ var funciones = {
 			data: data
         };
 
-        var resultado_axios = await axios(options);
+        console.log("[update_vigencia] :: [options] :: ", options);
 
-        if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
+        await axios(options).then(function (response)
         {
-        	resultado = true
-        }
+		  	console.log("[valida_vigencia] :: [response] :: ",response);
 
-        console.log("[valida_vigencia] :: [resultado] :: ",resultado);
+		  	if(response.status == 200 && response.statusText == 'OK')
+	        {
+	        	resultado = true;	        	
+	        }
+		})
+		.catch(function (error)
+		{
+			console.log("[update_vigencia] :: [error] :: " + error.response.status);
+        	console.log("[update_vigencia] :: [error] :: " + error.response.data);
 
-        return resultado_axios.authValidity;
+        	resultado = error.response.data.code;
+		});
+
+        console.log("[update_vigencia] :: [resultado] :: " + resultado);
+
+        return resultado;
     }
 }
 
