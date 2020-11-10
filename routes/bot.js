@@ -193,9 +193,11 @@ router.post('/message', async (req, res) => {
 
                           num_intentos = parseInt(num_intentos) + 1;
 
-                          console.log("Numero de intentos :::::::: ", num_intentos);
+                          console.log("Numero de intentos :::::::: " + num_intentos);
 
-                          if((axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 3 )
+                          console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
+
+                          if((axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 3 )
                           {
                             
                             resultado.action = msj_aut_erroneo.action;
@@ -323,6 +325,88 @@ router.post('/message', async (req, res) => {
 
   res.status(estatus).json(resultado);
 });
+
+/*app.post('/terminateConversation', (req, res) => {
+  var result, resultado;
+  var bandera = false , estatus = 200;
+
+  var persona = req.body.persona;
+  var ejecutivo = req.body.ejecutivo;
+  var conversacion = req.body.conversacion;
+
+  if(persona !== '' && typeof persona !== "undefined") 
+  {
+      if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
+      {
+        if(conversacion !== '' && typeof conversacion !== "undefined") 
+        {
+          var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
+
+          var data = {
+            "callData": {
+              "token": "1111111",
+              "urlWebhookListener": "https://psservices.qa-puresocial.com/chatApi/webhookListener",
+              "eventData": {
+                "conversationId": conversacion.id,
+                "eventInfo": {
+                  "type": "channelChatFinishEPA",
+                  "info": {
+                    "text": "Se finalizó la EPA."
+                  }
+                }
+              }
+            }
+          };    
+
+          var options = {
+            method : 'POST',
+            url : url,
+            headers : { 
+              'Content-Type':'application/json',
+              'Authorization': config.authorization
+            },
+            data: data
+          };
+
+          var resultado_axios = await axios(options);
+
+          console.log("[terminateConversation] :: [resultado_axios] :: ",resultado_axios);
+
+          if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
+          {
+            
+          }
+            
+          resultado = {
+            "estado": "OK"
+          }
+        }
+        else
+        {
+          estatus = 400;
+          resultado = {
+            "estado": "El valor de conversacion es requerido"
+          }
+        }
+      }
+      else
+      {
+        estatus = 400;
+        resultado = {
+          "estado": "El valor del ejecutivo es requerido"
+        }
+      } 
+  }
+  else
+  {
+    estatus = 400;
+      resultado = {
+        "estado": "El valor de la persona es requerido"
+      }
+  } 
+
+  res.status(estatus).json(resultado);
+});*/
 
 /*app.post('/terminate', (req, res) => {
   var result, resultado;
