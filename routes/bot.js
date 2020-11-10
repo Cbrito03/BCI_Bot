@@ -197,7 +197,7 @@ router.post('/message', async (req, res) => {
 
                           console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
 
-                          if((axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 3 )
+                          if((axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 2 )
                           {
                             
                             resultado.action = msj_aut_erroneo.action;
