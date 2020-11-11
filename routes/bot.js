@@ -102,7 +102,7 @@ router.post('/message', async (req, res) => {
 
                   localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
 
-                  console.log("NO ES CLIENTE **************", valida_vigencia.authValidity, typeof valida_vigencia.authValidity);
+                  console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);
 
                   if(valida_vigencia.authValidity == true)
                   {
@@ -353,91 +353,107 @@ router.post('/message', async (req, res) => {
   res.status(estatus).json(resultado);
 });
 
-app.post('/notification/send', (req, res) => {
-  var result, resultado;
-  var bandera = false , estatus = 200;
+router.post('/notification/send', async (req, res) => {
+  
+  var resultado = {};
+  var masDestinos = false;
 
-  var persona = req.body.persona;
-  var ejecutivo = req.body.ejecutivo;
-  var conversacion = req.body.conversacion;
+  // Campos Oblogatorios
+  var channel = req.body.channel;
+  var userID = req.body.userID;
+  var orgID = req.body.orgID;
+  var type = req.body.type;
+  var destination = req.body.destination;
+  var data = req.body.data;
+  var origin = req.body.origin;
+  var context = req.body.context;
 
-  if(persona !== '' && typeof persona !== "undefined") 
+  // Campos No Obligstorios
+  var urlCallbackHSM = req.body.urlCallbackHSM;
+  var saveHistory = req.body.saveHistory;
+  var systemMessage = req.body.systemMessage;
+  var botNotification = req.body.botNotification;
+
+  if(channel !== '' && typeof channel !== "undefined") 
   {
-      if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
+    if(userID !== '' && typeof userID !== "undefined") 
+    {
+      if(orgID !== '' && typeof orgID !== "undefined") 
       {
-        if(conversacion !== '' && typeof conversacion !== "undefined") 
+        if(type !== '' && typeof type !== "undefined") 
         {
-          var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
-
-          var data = {
-            "callData": {
-              "token": "1111111",
-              "urlWebhookListener": "https://psservices.qa-puresocial.com/chatApi/webhookListener",
-              "eventData": {
-                "conversationId": conversacion.id,
-                "eventInfo": {
-                  "type": "channelChatFinishEPA",
-                  "info": {
-                    "text": "Se finalizó la EPA."
+          if(destination !== '' && typeof destination !== "undefined") 
+          {
+            if(data !== '' && typeof data !== "undefined") 
+            {
+              if(origin !== '' && typeof origin !== "undefined") 
+              {
+                if(context !== '' && typeof context !== "undefined") 
+                {
+                  if(masDestinos)
+                  {
+                    estatus = 200;
+                    resultado.callbackId = "5e55220892cce61967ad7934";
+                  }
+                  else
+                  {
+                    resultado.status = 0;
+                    resultado.message = "OK";
                   }
                 }
+                else
+                {
+                  resultado.status = "NOK";
+                  resultado.message = "El contexto es requerido";
+                }
+              }
+              else
+              {
+                resultado.status = "NOK";
+                resultado.message = "El origin es requerido";
               }
             }
-          };    
-
-          var options = {
-            method : 'POST',
-            url : url,
-            headers : { 
-              'Content-Type':'application/json',
-              'Authorization': config.authorization
-            },
-            data: data
-          };
-
-          var resultado_axios = await axios(options);
-
-          console.log("[terminateConversation] :: [resultado_axios] :: ",resultado_axios);
-
-          if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
-          {
-            
+            else
+            {
+              resultado.status = "NOK";
+              resultado.message = "El data es requerido";
+            }
           }
-            
-          resultado = {
-            "estado": "OK"
+          else
+          {
+            resultado.status = "NOK";
+            resultado.message = "El destination es requerido";
           }
         }
         else
         {
-          estatus = 400;
-          resultado = {
-            "estado": "El valor de conversacion es requerido"
-          }
+          resultado.status = "NOK";
+          resultado.message = "El type es requerido";
         }
       }
       else
       {
-        estatus = 400;
-        resultado = {
-          "estado": "El valor del ejecutivo es requerido"
-        }
-      } 
+        resultado.status = "NOK";
+        resultado.message = "El orgID es requerido";
+      }
+    }
+    else
+    {
+      resultado.status = "NOK";
+      resultado.message = "El userID es requerido";
+    }    
   }
   else
   {
-    estatus = 400;
-      resultado = {
-        "estado": "El valor de la persona es requerido"
-      }
+    resultado.status = "NOK";
+    resultado.message = "El channel es requerido";
   } 
 
-  res.status(estatus).json(resultado);
+  res.status(200).json(resultado);
 });
 
-/*app.post('/terminateConversation', (req, res) => {
-  var result, resultado;
-  var bandera = false , estatus = 200;
+router.post('/terminateConversation', async (req, res) => {
+  var resultado = {};
 
   var persona = req.body.persona;
   var ejecutivo = req.body.ejecutivo;
@@ -445,12 +461,34 @@ app.post('/notification/send', (req, res) => {
 
   if(persona !== '' && typeof persona !== "undefined") 
   {
-      if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
+    if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
+    {
+      if(conversacion !== '' && typeof conversacion !== "undefined") 
       {
-        if(conversacion !== '' && typeof conversacion !== "undefined") 
-        {
-          var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
+        var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
 
+        var bandera_label = true;
+
+        if(Array.isArray(conversacion.etiquetas))
+        {
+          for (var i = 0; i < conversacion.etiquetas.length; i++)
+          {
+            if(conversacion.etiquetas[i] == "automaticClose")
+            {
+              bandera_label = false;
+            }
+          }
+        }
+        else
+        {
+            if(conversacion.etiquetas == "automaticClose")
+            {
+              bandera_label = false;
+            }
+        }
+
+        if(bandera_label)
+        {
           var data = {
             "callData": {
               "token": "1111111",
@@ -471,51 +509,57 @@ app.post('/notification/send', (req, res) => {
             method : 'POST',
             url : url,
             headers : { 
-              'Content-Type':'application/json',
-              'Authorization': config.authorization
+              'Content-Type':'application/json'
             },
             data: data
           };
 
           var resultado_axios = await axios(options);
 
-          console.log("[terminateConversation] :: [resultado_axios] :: ",resultado_axios);
+          console.log("[terminateConversation] :: [resultado_axios.status] :: ", resultado_axios.status);
+          console.log("[terminateConversation] :: [resultado_axios.statusText] :: ", resultado_axios.statusText);
+          console.log("[terminateConversation] :: [resultado_axios.data] :: ", resultado_axios.data);
 
           if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
           {
-            
-          }
-            
-          resultado = {
-            "estado": "OK"
+            if(resultado_axios.data.status != 'failure')
+            {
+              resultado.status = "OK";
+              resultado.message = resultado_axios.data.description;
+            }
+            else if(resultado_axios.data.status == 'failure')
+            {
+              resultado.status = "NOK";
+              resultado.message = resultado_axios.data.description;
+            }
           }
         }
         else
         {
-          estatus = 400;
-          resultado = {
-            "estado": "El valor de conversacion es requerido"
-          }
+          resultado.status = "OK";
+          resultado.message = "Contenia la etiqueta automaticClose";
         }
       }
       else
       {
-        estatus = 400;
-        resultado = {
-          "estado": "El valor del ejecutivo es requerido"
-        }
-      } 
+        resultado.status = "NOK";
+        resultado.message = "El valor de conversacion es requerido";
+      }
+    }
+    else
+    {
+      resultado.status = "NOK";
+      resultado.message = "El valor del ejecutivo es requerido";      
+    } 
   }
   else
   {
-    estatus = 400;
-      resultado = {
-        "estado": "El valor de la persona es requerido"
-      }
+    resultado.status = "NOK";
+    resultado.message = "El valor de la persona es requerido";    
   } 
 
-  res.status(estatus).json(resultado);
-});*/
+  res.status(200).json(resultado);
+});
 
 /*app.post('/terminate', (req, res) => {
   var result, resultado;
