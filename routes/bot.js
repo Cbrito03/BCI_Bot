@@ -146,8 +146,7 @@ router.post('/message', async (req, res) => {
                     resultado.action.saveHistory = false;
                     resultado.messages.push(msj_preguntas_rut.messages[0]);
 
-                    localStorage.setItem("pregunta_rut"+conversationID, ["rut",true]);                      
-                    
+                    localStorage.setItem("pregunta_rut"+conversationID, ["rut",true]); 
                   }
                   else if(pregunta_rut[0] == "rut" && pregunta_rut[1] == "true" )
                   {
@@ -158,7 +157,7 @@ router.post('/message', async (req, res) => {
 
                     if(bandera_vali)
                     {
-                      if(/*rut_vigencia.replace(/-/g,"") == mensaje*/ true)
+                      if(rut_vigencia.replace(/-/g,"") == mensaje)
                       {
                         var  respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
@@ -350,6 +349,88 @@ router.post('/message', async (req, res) => {
       "status": "400"
     }
   }
+
+  res.status(estatus).json(resultado);
+});
+
+app.post('/notification/send', (req, res) => {
+  var result, resultado;
+  var bandera = false , estatus = 200;
+
+  var persona = req.body.persona;
+  var ejecutivo = req.body.ejecutivo;
+  var conversacion = req.body.conversacion;
+
+  if(persona !== '' && typeof persona !== "undefined") 
+  {
+      if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
+      {
+        if(conversacion !== '' && typeof conversacion !== "undefined") 
+        {
+          var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
+
+          var data = {
+            "callData": {
+              "token": "1111111",
+              "urlWebhookListener": "https://psservices.qa-puresocial.com/chatApi/webhookListener",
+              "eventData": {
+                "conversationId": conversacion.id,
+                "eventInfo": {
+                  "type": "channelChatFinishEPA",
+                  "info": {
+                    "text": "Se finalizó la EPA."
+                  }
+                }
+              }
+            }
+          };    
+
+          var options = {
+            method : 'POST',
+            url : url,
+            headers : { 
+              'Content-Type':'application/json',
+              'Authorization': config.authorization
+            },
+            data: data
+          };
+
+          var resultado_axios = await axios(options);
+
+          console.log("[terminateConversation] :: [resultado_axios] :: ",resultado_axios);
+
+          if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
+          {
+            
+          }
+            
+          resultado = {
+            "estado": "OK"
+          }
+        }
+        else
+        {
+          estatus = 400;
+          resultado = {
+            "estado": "El valor de conversacion es requerido"
+          }
+        }
+      }
+      else
+      {
+        estatus = 400;
+        resultado = {
+          "estado": "El valor del ejecutivo es requerido"
+        }
+      } 
+  }
+  else
+  {
+    estatus = 400;
+      resultado = {
+        "estado": "El valor de la persona es requerido"
+      }
+  } 
 
   res.status(estatus).json(resultado);
 });
