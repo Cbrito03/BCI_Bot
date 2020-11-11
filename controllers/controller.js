@@ -13,6 +13,7 @@ const xmlParser = require('xml2json');
 
 var config = 
 {
+	validaty : 3,
 	urlCEDU : "https://www.sinacofi.cl/SinacofiWS_CEDU/CEDU0702.asmx",
 	urlSNPV : "https://www.sinacofi.cl/SinacofiWS_SNPV/SNPV1801.asmx?wsdl",
 	url_get_vigencia : "https://psservices.qa-puresocial.com/perfiles/getVigencia",
@@ -261,11 +262,9 @@ var funciones = {
     {
     	console.log("[valida_vigencia] :: [NUM] :: ", num, typeof num);
 
-    	var resultado = false;
+    	var resultado = { "authValidity" : false };
 
-    	var data = {
-    		 "phone": num // num
-    	};		
+    	var data = { "phone": num };		
 
 		var options = {
         	method : 'POST',
@@ -277,30 +276,22 @@ var funciones = {
 			data: data
         };
 
-        console.log("[valida_vigencia] :: [options] :: ", options);
-
-        //var resultado_axios = await axios(options).catch(error=>{});
+        console.log("[valida_vigencia] :: [data - NUM ] :: ", num);
 
         await axios(options).then(function (response)
         {
-		  //console.log("[valida_vigencia] :: [response] :: ",response);
-		  	resultado_axios = response;
-
 		  	if(response.status == 200 && response.statusText == 'OK')
 	        {
-	        	resultado = response.data.authValidity;	        	
+	        	resultado = response.data;	        	
 	        }
-		})
-		.catch(function (error)
+		}).catch(function (error)
 		{
-			resultado_axios = error;
-			console.log("[valida_vigencia] :: [resultado_axios] :: "+resultado_axios.response.status);
-        	console.log("[valida_vigencia] :: [resultado_axios] :: "+resultado_axios.response.data);
-
-        	resultado = resultado_axios.response.data.code;
+			console.log("[valida_vigencia] :: [catch] :: [error] :: "+error.response.status);
+        	console.log("[valida_vigencia] :: [catch] :: [error] :: "+error.response.data);
+        	resultado.authValidity = error.response.data.code;
 		});
 
-        console.log("[valida_vigencia] :: [resultado] :: " + resultado);
+        console.log("[valida_vigencia] :: [resultado] :: " + resultado.authValidity);
 
         return resultado;
     },
@@ -313,7 +304,7 @@ var funciones = {
     	var data = {
     		"idPerson": "bci:"+rut,
 		    "phone": num,
-		    "validity": 1
+		    "validity": config.validity
     	};    	
 
 		var options = {
@@ -325,8 +316,6 @@ var funciones = {
 			},
 			data: data
         };
-
-        console.log("[update_vigencia] :: [options] :: ", options);
 
         await axios(options).then(function (response)
         {
