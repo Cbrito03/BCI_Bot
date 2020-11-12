@@ -4,6 +4,7 @@ const MsjInicial = require('../models/MsjInicial');
 const Horarios = require('../models/Horarios');
 const BotMensajes = require('../models/BotMensajes.js');
 const botMsj = require('../controllers/botMsj.js');
+const Reportes = require('../models/Reporte');
 const jquery = require('jquery');
 const moment = require('moment');
 const axios = require('axios');
@@ -90,6 +91,48 @@ var funciones = {
 	    }
 
 	    return obj;
+    },
+    cargar_preguntas_EPA: async function()
+	{
+		var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 6});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
+    cargar_fin_EPA: async function()
+	{
+		var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 7});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
+    registrar_preguntas_EPA: async function(e)
+	{
+		const reporte = new Reportes(
+	    {
+	    	id: e.id,
+		    usuario: e.name,
+		    horario: e.horario,
+			channel: e.channel,
+		    respuesta_1: e.pregunta_1,
+		    respuesta_2: e.pregunta_2
+	    });
+
+	    const result = await reporte.save();
+
+	    console.log("[Controller] :: [registrar_preguntas_EPA] :: ", result);
     },
     cargar_no_cliente: async function()
     {

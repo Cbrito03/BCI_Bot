@@ -50,6 +50,20 @@ router.post('/message', async (req, res) => {
       "authValidity": ""
     }
   }
+
+  console.log("lastInteractionFinishTime :: " + context.lastInteractionFinishTime);
+
+  var now = moment();
+  var fechaStamp = moment(context.lastInteractionFinishTime)/*.subtract(6, 'hours')*/;
+  fechaStamp = moment(fechaStamp).format("YYYY-MM-DD HH:mm:ss");
+  var fecha_actual = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+  var fecha2 = moment(fecha_actual, "YYYY-MM-DD HH:mm:ss");
+
+  console.log("fechaStamp :: " + fechaStamp + " :: fecha Actual :: " + fecha_actual);
+
+  var diff = fecha2.diff(fechaStamp, 'h'); 
+  console.log("diff :: " + diff);
+  console.log(typeof diff);
   
   var horarios = await controlador.funciones.validarHorario();  
 
@@ -67,6 +81,10 @@ router.post('/message', async (req, res) => {
 
   var msj_preguntas_rut = await controlador.funciones.cargar_preguntas_rut();
 
+  var msj_preguntas_EPA = await controlador.funciones.cargar_preguntas_EPA();
+
+  var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
+
   var local_function = {
     no_autenticado : async function()
     {
@@ -76,7 +94,21 @@ router.post('/message', async (req, res) => {
       resultado.messages.push(msj_aut_exitosa.messages[1]);
       resultado.additionalInfo.authValidity = false;
 
-      localStorage.clear();     
+      localStorage.removeItem("bot_bci_"+conversationID);
+      localStorage.removeItem("pregunta_rut"+conversationID);
+      localStorage.removeItem("valida_vigencia"+conversationID);
+      localStorage.removeItem("intento"+conversationID);
+      localStorage.removeItem("preguntas_EPA_"+conversationID);     
+    },
+    remove_localStorage : async function()
+    {
+      console.log("[local_function] :: [remove_localStorage]");
+
+      localStorage.removeItem("bot_bci_"+conversationID);
+      localStorage.removeItem("pregunta_rut"+conversationID);
+      localStorage.removeItem("valida_vigencia"+conversationID);
+      localStorage.removeItem("intento"+conversationID);
+      localStorage.removeItem("preguntas_EPA_"+conversationID);
     }
   }
 
@@ -92,9 +124,39 @@ router.post('/message', async (req, res) => {
           {
             if(mensaje !== '' && typeof mensaje !== "undefined") 
             {
-              mensaje = mensaje.text.trim();
+              mensaje = mensaje.text.trim();              
 
-              if(horarios.status)
+              if(context.lastInteractionType == "NOTIFICATION" && diff < 24)
+              {
+                // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
+                console.log("[EPA] :: pregunta_EPA :: ", localStorage.getItem("preguntas_EPA_"+conversationID));
+                if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
+                {                  
+                  resultado.action = msj_preguntas_EPA.action;
+                  resultado.messages.push(msj_preguntas_EPA.messages[1]);
+
+                  localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
+                }
+                else
+                {
+                  resultado.action = msj_fin_EPA.action;
+                  resultado.messages.push(msj_fin_EPA.messages[0]);
+
+                  var rest_EPA = {
+                    "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                    "pregunta_2" : mensaje,
+                    "horario" : horarios.status,
+                    "id" : user.id,
+                    "name" : user.name,
+                    "channel" : context.channel
+                  }
+
+                  await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
+
+                  await local_function.remove_localStorage();
+                }
+              }
+              else if(horarios.status)
               {
                 if(localStorage.getItem("bot_bci_"+conversationID) == null )
                 {
@@ -122,7 +184,7 @@ router.post('/message', async (req, res) => {
                     resultado.action = msj_no_cliente.action;
                     resultado.messages.push(msj_no_cliente.messages[0]);
 
-                    localStorage.clear();
+                    await local_function.remove_localStorage();
                   }  
                   else if(valida_vigencia.authValidity == false)
                   {
@@ -264,7 +326,7 @@ router.post('/message', async (req, res) => {
                       resultado.action = msj_aut_exitosa.action;
                       resultado.messages.push(msj_aut_exitosa.messages[1]);
                       resultado.additionalInfo.authValidity = true;
-                      localStorage.clear();
+                      await local_function.remove_localStorage();
                     }
                     else
                     {
@@ -464,8 +526,8 @@ router.post('/terminateConversation', async (req, res) => {
     if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
     {
       if(conversacion !== '' && typeof conversacion !== "undefined") 
-      {
-        var url = "https://cvst.qa-puresocial.com/sendConversationsEvent/specialEventChat";
+      { 
+        var url = "https://psservices.qa-puresocial.com/notification/send";
 
         var bandera_label = true;
 
@@ -490,49 +552,56 @@ router.post('/terminateConversation', async (req, res) => {
         if(bandera_label)
         {
           var data = {
-            "callData": {
-              "token": "1111111",
-              "urlWebhookListener": "https://psservices.qa-puresocial.com/chatApi/webhookListener",
-              "eventData": {
-                "conversationId": conversacion.id,
-                "eventInfo": {
-                  "type": "channelChatFinishEPA",
-                  "info": {
-                    "text": "Se finalizó la EPA."
-                  }
-                }
-              }
-            }
-          };    
+            "channel": "whatsapp",
+            "userID": persona.telefono,
+            "orgID": conversacion.id,
+            "type": "text",
+            "destination": {
+              "type": "recipient",
+              "recipients": [ "56972146071" ]
+            },
+            "data": {
+              "text" : "1. Por favor evalúa nuestra atención. En una escala del 1 al 5, donde 1 es pésimo y 5 es excelente."
+            },
+            "origin": "conversations",
+            "context": {},
+            "saveHistory": false,
+            "systemMessage": "EPA Enviada al cliente",
+            "botNotification": true
+          }
+
+          console.log("[data] :: ", data);
 
           var options = {
             method : 'POST',
             url : url,
             headers : { 
-              'Content-Type':'application/json'
+              'Content-Type':'application/json',
+              'Authorization': "Bearer eyKhbGciOiJIUzdxmklamwkdqwnondqown.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlNpeGJlbGwgQ29udmVyc2F0aW9ucyIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.UIFndsadskacascda_dasda878Cassda_XxsaSllip0__saWEasqwed2341cfSAS"
             },
             data: data
           };
 
-          var resultado_axios = await axios(options);
-
-          console.log("[terminateConversation] :: [resultado_axios.status] :: ", resultado_axios.status);
-          console.log("[terminateConversation] :: [resultado_axios.statusText] :: ", resultado_axios.statusText);
-          console.log("[terminateConversation] :: [resultado_axios.data] :: ", resultado_axios.data);
-
-          if(resultado_axios.status == 200 && resultado_axios.statusText == 'OK')
+          await axios(options).then(function (response)
           {
-            if(resultado_axios.data.status != 'failure')
+            if(response.status == 200 && response.statusText == 'OK')
             {
-              resultado.status = "OK";
-              resultado.message = resultado_axios.data.description;
+              resultado.status = response.data.status;
+              resultado.message = response.data.message;
+              resultado.idCanal = response.data.idCanal;          
             }
-            else if(resultado_axios.data.status == 'failure')
+            else
             {
-              resultado.status = "NOK";
-              resultado.message = resultado_axios.data.description;
+              resultado.status = response.data.status;
+              resultado.message = response.data.message;
+              resultado.idCanal = response.data.idCanal;
             }
-          }
+          })
+          .catch(function (error)
+          {
+            resultado.status = error.response.data.status;
+            resultado.message = error.response.data.message;
+          });
         }
         else
         {
@@ -556,7 +625,9 @@ router.post('/terminateConversation', async (req, res) => {
   {
     resultado.status = "NOK";
     resultado.message = "El valor de la persona es requerido";    
-  } 
+  }
+
+  console.log("[terminateConversation] :: [resultado] :: ", resultado);
 
   res.status(200).json(resultado);
 });
