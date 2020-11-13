@@ -319,7 +319,7 @@ var funciones = {
 			data: data
         };
 
-        console.log("[valida_vigencia] :: [data - NUM ] :: ", num);
+        console.log("[valida_vigencia] :: [data - NUM ] :: " + num);
 
         await axios(options).then(function (response)
         {
@@ -329,8 +329,8 @@ var funciones = {
 	        }
 		}).catch(function (error)
 		{
-			console.log("[valida_vigencia] :: [catch] :: [error] :: "+error.response.status);
-        	console.log("[valida_vigencia] :: [catch] :: [error] :: "+error.response.data);
+			console.log("[valida_vigencia] :: [catch] :: [error] :: " + error.response.status);
+        	console.log("[valida_vigencia] :: [catch] :: [error] :: " + error.response.data);
         	resultado.authValidity = error.response.data.code;
 		});
 

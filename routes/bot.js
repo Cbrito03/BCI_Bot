@@ -62,8 +62,7 @@ router.post('/message', async (req, res) => {
   console.log("fechaStamp :: " + fechaStamp + " :: fecha Actual :: " + fecha_actual);
 
   var diff = fecha2.diff(fechaStamp, 'h'); 
-  console.log("diff :: " + diff);
-  console.log(typeof diff);
+  console.log("diff :: " + diff + " Tipo " + typeof diff);
   
   var horarios = await controlador.funciones.validarHorario();  
 
@@ -86,6 +85,16 @@ router.post('/message', async (req, res) => {
   var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
 
   var local_function = {
+    si_autenticado : async function()
+    {
+      console.log("[local_function] :: [si_autenticado]");
+
+      resultado.action = msj_aut_exitosa.action;
+      resultado.action["type"] = "continue"; 
+      resultado.action.saveHistory = true;
+      resultado.messages.push(msj_aut_exitosa.messages[0]);   
+      resultado.messages[0].text = resultado.messages[0].text.replace("<nombre cliente>", user.name);    
+    },
     no_autenticado : async function()
     {
       console.log("[local_function] :: [no_autenticado]");
@@ -99,6 +108,29 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("valida_vigencia"+conversationID);
       localStorage.removeItem("intento"+conversationID);
       localStorage.removeItem("preguntas_EPA_"+conversationID);     
+    },
+    no_cliente : async function(e)
+    {
+      console.log("[local_function] :: [no_cliente]");
+
+      resultado.action = msj_no_cliente.action;
+      resultado.messages.push(msj_no_cliente.messages[0]);
+      resultado.additionalInfo.authValidity = false;
+    },
+    fin_EPA : async function(e)
+    {
+      console.log("[local_function] :: [msj_no_cliente]");
+      if(e)
+      {
+        resultado.action = msj_fin_EPA.action;
+        resultado.messages.push(msj_fin_EPA.messages[0]);
+      }
+      else
+      {
+        resultado.action = msj_fin_EPA.action;
+        resultado.messages.push(msj_fin_EPA.messages[0]);
+        resultado.additionalInfo.authValidity = false;
+      }   
     },
     remove_localStorage : async function()
     {
@@ -129,7 +161,7 @@ router.post('/message', async (req, res) => {
               if(context.lastInteractionType == "NOTIFICATION" && diff < 24)
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
-                console.log("[EPA] :: pregunta_EPA :: ", localStorage.getItem("preguntas_EPA_"+conversationID));
+                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
                 if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
                 {                  
                   resultado.action = msj_preguntas_EPA.action;
@@ -158,42 +190,19 @@ router.post('/message', async (req, res) => {
               }
               else if(horarios.status)
               {
+                var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
+
+                localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
+
+                console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);
+
                 if(localStorage.getItem("bot_bci_"+conversationID) == null )
                 {
-                  var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
+                  resultado.action = msj_inicial.action;
+                  resultado.messages.push(msj_inicial.messages[0]);
 
-                  localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
-
-                  console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);
-
-                  if(valida_vigencia.authValidity == true)
-                  {
-                    console.log("[valida_vigencia] :: [TRUE]");
-
-                    resultado.action = msj_aut_exitosa.action;
-                    resultado.action["type"] = "continue"; 
-                    resultado.messages.push(msj_aut_exitosa.messages[0]);   
-                    resultado.messages[0].text = resultado.messages[0].text.replace("<nombre cliente>", user.name);
-
-                    localStorage.setItem("pregunta_rut"+conversationID, ["transferir", false, valida_vigencia.id]);
-                    localStorage.setItem("bot_bci_"+conversationID, "cliente");
-                  }
-                  else if(valida_vigencia.authValidity === 99)
-                  {
-
-                    resultado.action = msj_no_cliente.action;
-                    resultado.messages.push(msj_no_cliente.messages[0]);
-
-                    await local_function.remove_localStorage();
-                  }  
-                  else if(valida_vigencia.authValidity == false)
-                  {
-                    resultado.action = msj_inicial.action;
-                    resultado.messages.push(msj_inicial.messages[0]);
-
-                    localStorage.setItem("bot_bci_"+conversationID, "cliente");
-                    localStorage.setItem("pregunta_rut"+conversationID, ["rut",false]);                    
-                  }                  
+                  localStorage.setItem("bot_bci_"+conversationID, "cliente");
+                  localStorage.setItem("pregunta_rut"+conversationID, ["rut",false]);
                 }
 
                 if(localStorage.getItem("bot_bci_"+conversationID) !== null)
@@ -210,17 +219,42 @@ router.post('/message', async (req, res) => {
 
                     localStorage.setItem("pregunta_rut"+conversationID, ["rut",true]); 
                   }
-                  else if(pregunta_rut[0] == "rut" && pregunta_rut[1] == "true" )
+                  
+                  if(pregunta_rut[0] == "rut" && pregunta_rut[1] == "true" )
                   {
-                    var bandera_vali = await controlador.funciones.validación_campos_rut(pregunta_rut[0], mensaje);
-                    var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID);
+                    var bandera_vali_rut = await controlador.funciones.validación_campos_rut(pregunta_rut[0], mensaje);
+                    
+                    var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID);                    
 
-                    console.log("[Cliente ingreso RUT] :: ", rut_vigencia.replace(/-/g,""), mensaje);
-
-                    if(bandera_vali)
+                    if(bandera_vali_rut)
                     {
-                      if(rut_vigencia.replace(/-/g,"") == mensaje)
+                      var vig = valida_vigencia.authValidity;
+                      var rt_vig = rut_vigencia.replace(/-/g,"");
+
+                      console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: "+ rt_vig +" :: == :: "+ mensaje);
+
+                      if(vig == true && rt_vig == mensaje)
                       {
+                        // si esta autenticado el rut SI es igual
+                        
+                        await local_function.si_autenticado();                        
+
+                        localStorage.setItem("pregunta_rut"+conversationID, ["transferir", true, valida_vigencia.id]);
+                        localStorage.setItem("bot_bci_"+conversationID, "cliente");
+                      }                      
+                      
+                      if(vig === 99 || (vig == true && rt_vig != mensaje) || (vig == false && rt_vig != mensaje))
+                      { 
+                        // No existe  o  si esta autenticado pero el rut no es igual  o  NO esta autenticado y el rut no es igual
+                        
+                        await local_function.no_cliente();
+
+                        await local_function.remove_localStorage();
+                      }  
+                      
+                      if(vig == false && rt_vig == mensaje) 
+                      { 
+                        // NO esta autenticado y el rut si es igual
                         var  respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
                         if(respuesta_rut == null)
@@ -231,13 +265,10 @@ router.post('/message', async (req, res) => {
                         resultado.action = msj_preguntas_rut.action;
                         resultado.action.saveHistory = false;
                         resultado.messages.push(msj_preguntas_rut.messages[1]);
+                        resultado.messages.push(msj_preguntas_rut.messages[2]);
 
-                        localStorage.setItem("pregunta_rut"+conversationID, ["numSerie",true]);
-                      }
-                      else // Cliente no autenticado
-                      {
-                        await local_function.no_autenticado();
-                      }                      
+                        localStorage.setItem("pregunta_rut"+conversationID, ["numSerie",true]);               
+                      }                                            
                     }
                     else
                     {
@@ -249,23 +280,19 @@ router.post('/message', async (req, res) => {
 
                   if(pregunta_rut[0] == "numSerie" && pregunta_rut[1] == "true" )
                   {
-                    var bandera_vali = await controlador.funciones.validación_campos_rut(pregunta_rut[0], mensaje);
+                    var bandera_vali_serie = await controlador.funciones.validación_campos_rut(pregunta_rut[0], mensaje);
                     
-                    if(bandera_vali)
+                    if(bandera_vali_serie)
                     {
                       var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
                       var axios_CEDU = await controlador.funciones.preguntas_sinacofi_CEDU(respuesta_rut, mensaje);
-
+                      console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
                       if(axios_CEDU.status)
                       {
                         if(axios_CEDU.result == "10000")
-                        {                         
-                          resultado.action = msj_aut_exitosa.action;
-                          resultado.action["type"] = "continue";
-                          resultado.action.saveHistory = false;
-                          resultado.messages.push(msj_aut_exitosa.messages[0]);   
-                          resultado.messages[0].text = resultado.messages[0].text.replace("<nombre cliente>", user.name);
+                        {
+                          await local_function.si_autenticado();
 
                           localStorage.setItem("pregunta_rut"+conversationID, ["transferir",true]);
 
@@ -319,11 +346,12 @@ router.post('/message', async (req, res) => {
                     }                                     
                   }
 
-                  if(pregunta_rut[0] === "transferir" && pregunta_rut[2] !== "")
+                  if(pregunta_rut[0] === "transferir" && pregunta_rut[1] == "true")
                   {
                     if(pregunta_rut[1] == "true") // Viene autenticado
                     {
                       resultado.action = msj_aut_exitosa.action;
+                      resultado.action.saveHistory = true;
                       resultado.messages.push(msj_aut_exitosa.messages[1]);
                       resultado.additionalInfo.authValidity = true;
                       await local_function.remove_localStorage();
@@ -347,7 +375,9 @@ router.post('/message', async (req, res) => {
                   if(pregunta_rut[0] === "intentar" && mensaje.toLowerCase() != "si" && mensaje.toLowerCase() != "1")
                   {
                     console.log("entro a intentar con un no :: " + mensaje +" :: "+  mensaje.toLowerCase() != "si" || mensaje.toLowerCase() != "1");
-                    await local_function.no_autenticado();
+                    await local_function.fin_EPA(false);
+                    await local_function.remove_localStorage()
+                    //await local_function.no_autenticado();
                   }                  
                 }
               }              
@@ -517,6 +547,8 @@ router.post('/notification/send', async (req, res) => {
 router.post('/terminateConversation', async (req, res) => {
   var resultado = {};
 
+  console.log("[terminateConversation] [EPA]");
+
   var persona = req.body.persona;
   var ejecutivo = req.body.ejecutivo;
   var conversacion = req.body.conversacion;
@@ -569,8 +601,6 @@ router.post('/terminateConversation', async (req, res) => {
             "systemMessage": "EPA Enviada al cliente",
             "botNotification": true
           }
-
-          console.log("[data] :: ", data);
 
           var options = {
             method : 'POST',
