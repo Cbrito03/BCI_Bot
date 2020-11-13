@@ -592,8 +592,8 @@ router.post('/terminateConversation', async (req, res) => {
         {
           var data = {
             "channel": "whatsapp",
-            "userID": conversacion.userID,
-            "orgID": conversacion.orgID,
+            "userID": conversacion.userId,
+            "orgID": conversacion.orgId,
             "type": "text",
             "destination": {
               "type": "recipient",
