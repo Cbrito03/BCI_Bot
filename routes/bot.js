@@ -547,7 +547,7 @@ router.post('/notification/send', async (req, res) => {
 router.post('/terminateConversation', async (req, res) => {
   var resultado = {};
 
-  console.log("[terminateConversation] [EPA]");
+  console.log("[terminateConversation] [EPA] :: ");
 
   var persona = req.body.persona;
   var ejecutivo = req.body.ejecutivo;
@@ -563,34 +563,41 @@ router.post('/terminateConversation', async (req, res) => {
 
         var bandera_label = true;
 
+        console.log("[terminateConversation] [EPADatos]:: " + conversacion.userID + " :: " + conversacion.orgID + " :: " + persona.telefono);
+
         if(Array.isArray(conversacion.etiquetas))
         {
+          console.log("[terminateConversation] [EPAarray]:: " + true);
           for (var i = 0; i < conversacion.etiquetas.length; i++)
           {
+            console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [FOR] :: " + conversacion.etiquetas[i] );
             if(conversacion.etiquetas[i] == "automaticClose")
             {
+              console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [Etiqueta] ::" + true + " :: [FOR] :: " + conversacion.etiquetas[i] );
               bandera_label = false;
             }
           }
         }
         else
         {
-            if(conversacion.etiquetas == "automaticClose")
-            {
-              bandera_label = false;
-            }
+          console.log("[terminateConversation] [EPAarray]:: " + false + " :: [etiquetas] :: " + conversacion.etiquetas);
+          if(conversacion.etiquetas == "automaticClose")
+          {
+            console.log("[terminateConversation] [EPAarray]:: " + false + " :: [etiquetas] :: " + conversacion.etiquetas + " :: [etiquetas] :: " + true);
+            bandera_label = false;
+          }
         }
 
         if(bandera_label)
         {
           var data = {
             "channel": "whatsapp",
-            "userID": persona.telefono,
-            "orgID": conversacion.id,
+            "userID": conversacion.userID,
+            "orgID": conversacion.orgID,
             "type": "text",
             "destination": {
               "type": "recipient",
-              "recipients": [ "56972146071" ]
+              "recipients": [ persona.telefono ]
             },
             "data": {
               "text" : "1. Por favor evalúa nuestra atención. En una escala del 1 al 5, donde 1 es pésimo y 5 es excelente."
@@ -626,17 +633,23 @@ router.post('/terminateConversation', async (req, res) => {
               resultado.message = response.data.message;
               resultado.idCanal = response.data.idCanal;
             }
+
+            console.log("[terminateConversation] [EPAOK] [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message + " :: [EPAIdCanal] :: " + resultado.idCanal);
           })
           .catch(function (error)
           {
             resultado.status = error.response.data.status;
             resultado.message = error.response.data.message;
+
+            console.log("[terminateConversation] [EPAERROR] [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
           });
         }
         else
         {
           resultado.status = "OK";
           resultado.message = "Contenia la etiqueta automaticClose";
+
+          console.log("[terminateConversation] [bandera_label]" + bandera_label + " :: [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
         }
       }
       else
@@ -656,8 +669,6 @@ router.post('/terminateConversation', async (req, res) => {
     resultado.status = "NOK";
     resultado.message = "El valor de la persona es requerido";    
   }
-
-  console.log("[terminateConversation] :: [resultado] :: ", resultado);
 
   res.status(200).json(resultado);
 });
@@ -708,6 +719,5 @@ router.post('/terminateConversation', async (req, res) => {
 
   res.status(estatus).json(resultado);
 });*/
-
 
 module.exports = router
