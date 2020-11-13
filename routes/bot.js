@@ -563,7 +563,7 @@ router.post('/terminateConversation', async (req, res) => {
 
         var bandera_label = true;
 
-        console.log("[terminateConversation] [EPADatos]:: " + conversacion.userID + " :: " + conversacion.orgID + " :: " + persona.telefono);
+        console.log("[terminateConversation] [EPADatos]:: [userId] ::" + conversacion.userId  + " :: [orgId] :: " + conversacion.orgId + " :: [telefono] ::" + persona.telefono);
 
         if(Array.isArray(conversacion.etiquetas))
         {
