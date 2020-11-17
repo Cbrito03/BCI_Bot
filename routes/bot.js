@@ -113,7 +113,7 @@ router.post('/message', async (req, res) => {
     },
     fin_EPA : async function(e)
     {
-      console.log("[local_function] :: [msj_no_cliente]");
+      console.log("[local_function] :: [fin EPA]");
       if(e)
       {
         resultado.action = msj_fin_EPA.action;
@@ -286,7 +286,7 @@ router.post('/message', async (req, res) => {
                       console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
                       if(axios_CEDU.status)
                       {
-                        if(axios_CEDU.result == "10000")
+                        if(axios_CEDU.result == "10000" /*&& axios_CEDU.result == "10000"*/)
                         {
                           await local_function.si_autenticado();
 
@@ -442,6 +442,10 @@ router.post('/message', async (req, res) => {
       "status": "400"
     }
   }
+
+  console.log("[BCI] :: [FINAL] :: [resultado] :: [action]", resultado.action.type);
+  console.log("[BCI] :: [FINAL] :: [resultado] :: [text]", resultado.messages[0].text);
+  console.log("[BCI] :: [FINAL] :: [resultado] :: [authValidity]", resultado.additionalInfo.authValidity);
 
   res.status(estatus).json(resultado);
 });
