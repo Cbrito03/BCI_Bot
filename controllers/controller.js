@@ -14,7 +14,7 @@ const xmlParser = require('xml2json');
 
 var config = 
 {
-	validaty : 3,
+	validaty : 5,
 	urlCEDU : "https://www.sinacofi.cl/SinacofiWS_CEDU/CEDU0702.asmx",
 	urlSNPV : "https://www.sinacofi.cl/SinacofiWS_SNPV/SNPV1801.asmx?wsdl",
 	url_get_vigencia : "https://psservices.qa-puresocial.com/perfiles/getVigencia",
@@ -132,7 +132,7 @@ var funciones = {
 
 	    const result = await reporte.save();
 
-	    console.log("[Controller] :: [registrar_preguntas_EPA] :: ", result);
+	    console.log("[Controller] :: [registrar_preguntas_EPA] :: " +  result.status);
     },
     cargar_no_cliente: async function()
     {
@@ -303,7 +303,7 @@ var funciones = {
     },
     valida_vigencia: async function(num)
     {
-    	console.log("[valida_vigencia] :: [NUM] :: ", num, typeof num);
+    	console.log("[valida_vigencia] :: [NUM] :: " + num + " - " + typeof num);
 
     	var resultado = { "authValidity" : false };
 
@@ -340,15 +340,17 @@ var funciones = {
     },
     update_vigencia: async function(num,rut)
     {
-    	console.log("[update_vigencia] :: [NUM] :: " + num+" :: [RUT] :: "+ rut);
+    	console.log("[update_vigencia] :: [NUM] :: " + num + " :: [RUT] :: " + rut);
 
     	var resultado = false;
 
     	var data = {
     		"idPerson": "bci:"+rut,
 		    "phone": num,
-		    "validity": config.validity
-    	};    	
+		    "validity": config.validaty
+    	};
+
+    	console.log("[update_vigencia] :: [idPerson] :: " + data.idPerson + " :: [phone] :: " + data.phone + " :: [validity] :: " + data.validity);
 
 		var options = {
         	method : 'POST',
@@ -362,7 +364,7 @@ var funciones = {
 
         await axios(options).then(function (response)
         {
-		  	console.log("[valida_vigencia] :: [response] :: ",response);
+		  	console.log("[valida_vigencia] :: [response] :: [Status] :: " + response.status + " :: [valida_vigencia] :: " + esponse.statusText);
 
 		  	if(response.status == 200 && response.statusText == 'OK')
 	        {
@@ -371,10 +373,9 @@ var funciones = {
 		})
 		.catch(function (error)
 		{
-			console.log("[update_vigencia] :: [error] :: " + error.response.status);
-        	console.log("[update_vigencia] :: [error] :: " + error.response.data);
+			console.log("[update_vigencia] :: [error] :: [status] ::" + error.response.status " :: [Code] ::" + error.response.data.code);
 
-        	resultado = error.response.data.code;
+        	resultado = "Code: " +error.response.data.code + " - Description: " + error.response.data.description;
 		});
 
         console.log("[update_vigencia] :: [resultado] :: " + resultado);

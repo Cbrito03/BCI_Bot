@@ -101,13 +101,7 @@ router.post('/message', async (req, res) => {
 
       resultado.action = msj_aut_exitosa.action;                    
       resultado.messages.push(msj_aut_exitosa.messages[1]);
-      resultado.additionalInfo.authValidity = false;
-
-      localStorage.removeItem("bot_bci_"+conversationID);
-      localStorage.removeItem("pregunta_rut"+conversationID);
-      localStorage.removeItem("valida_vigencia"+conversationID);
-      localStorage.removeItem("intento"+conversationID);
-      localStorage.removeItem("preguntas_EPA_"+conversationID);     
+      resultado.additionalInfo.authValidity = false;   
     },
     no_cliente : async function(e)
     {
@@ -233,28 +227,30 @@ router.post('/message', async (req, res) => {
 
                       console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: "+ rt_vig +" :: == :: "+ mensaje);
 
+                      // si esta autenticado el rut SI es igual
                       if(vig == true && rt_vig == mensaje)
                       {
-                        // si esta autenticado el rut SI es igual
-                        
                         await local_function.si_autenticado();                        
 
                         localStorage.setItem("pregunta_rut"+conversationID, ["transferir", true, valida_vigencia.id]);
                         localStorage.setItem("bot_bci_"+conversationID, "cliente");
                       }                      
                       
+                      // No existe  o  si esta autenticado pero el rut no es igual  o  NO esta autenticado y el rut no es igual
                       if(vig === 99 || (vig == true && rt_vig != mensaje) || (vig == false && rt_vig != mensaje))
                       { 
-                        // No existe  o  si esta autenticado pero el rut no es igual  o  NO esta autenticado y el rut no es igual
-                        
-                        await local_function.no_cliente();
+                        //await local_function.no_cliente();
 
-                        await local_function.remove_localStorage();
+                        await local_function.si_autenticado();
+
+                        localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
+
+                        //await local_function.remove_localStorage();
                       }  
                       
+                      // NO esta autenticado y el rut si es igual
                       if(vig == false && rt_vig == mensaje) 
-                      { 
-                        // NO esta autenticado y el rut si es igual
+                      {                         
                         var  respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
                         if(respuesta_rut == null)
@@ -330,12 +326,14 @@ router.post('/message', async (req, res) => {
                           else // cambiar valor a  no autenticado en el contexto
                           {
                             await local_function.no_autenticado();
+                            await local_function.remove_localStorage();
                           }
                         }
                       }
                       else // cambiar valor a  no autenticado en el contexto
                       {
                         await local_function.no_autenticado();
+                        await local_function.remove_localStorage();
                       }                      
                     }
                     else
@@ -348,18 +346,20 @@ router.post('/message', async (req, res) => {
 
                   if(pregunta_rut[0] === "transferir" && pregunta_rut[1] == "true")
                   {
-                    if(pregunta_rut[1] == "true") // Viene autenticado
-                    {
-                      resultado.action = msj_aut_exitosa.action;
-                      resultado.action.saveHistory = true;
-                      resultado.messages.push(msj_aut_exitosa.messages[1]);
-                      resultado.additionalInfo.authValidity = true;
-                      await local_function.remove_localStorage();
-                    }
-                    else
-                    {
-                      localStorage.setItem("pregunta_rut"+conversationID, ["transferir", true, pregunta_rut[2]]);
-                    }                                         
+                    resultado.action = msj_aut_exitosa.action;
+                    resultado.action.saveHistory = true;
+                    resultado.messages.push(msj_aut_exitosa.messages[1]);
+                    resultado.additionalInfo.authValidity = true;
+                    await local_function.remove_localStorage();                                                             
+                  }
+
+                  if(pregunta_rut[0] === "transferir" && pregunta_rut[1] == "NOAUT")
+                  {                    
+                    resultado.action = msj_aut_exitosa.action;
+                    resultado.action.saveHistory = true;
+                    resultado.messages.push(msj_aut_exitosa.messages[1]);
+                    resultado.additionalInfo.authValidity = false;
+                    await local_function.remove_localStorage();
                   }
 
                   // Intentos
@@ -376,7 +376,7 @@ router.post('/message', async (req, res) => {
                   {
                     console.log("entro a intentar con un no :: " + mensaje +" :: "+  mensaje.toLowerCase() != "si" || mensaje.toLowerCase() != "1");
                     await local_function.fin_EPA(false);
-                    await local_function.remove_localStorage()
+                    await local_function.remove_localStorage();
                     //await local_function.no_autenticado();
                   }                  
                 }
@@ -384,7 +384,8 @@ router.post('/message', async (req, res) => {
               else
               {
                 resultado.action = horarios.action;
-                resultado.messages = horarios.messages;               
+                resultado.messages = horarios.messages;
+                await local_function.remove_localStorage();             
               }
               console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
             }
@@ -445,105 +446,6 @@ router.post('/message', async (req, res) => {
   res.status(estatus).json(resultado);
 });
 
-router.post('/notification/send', async (req, res) => {
-  
-  var resultado = {};
-  var masDestinos = false;
-
-  // Campos Oblogatorios
-  var channel = req.body.channel;
-  var userID = req.body.userID;
-  var orgID = req.body.orgID;
-  var type = req.body.type;
-  var destination = req.body.destination;
-  var data = req.body.data;
-  var origin = req.body.origin;
-  var context = req.body.context;
-
-  // Campos No Obligstorios
-  var urlCallbackHSM = req.body.urlCallbackHSM;
-  var saveHistory = req.body.saveHistory;
-  var systemMessage = req.body.systemMessage;
-  var botNotification = req.body.botNotification;
-
-  if(channel !== '' && typeof channel !== "undefined") 
-  {
-    if(userID !== '' && typeof userID !== "undefined") 
-    {
-      if(orgID !== '' && typeof orgID !== "undefined") 
-      {
-        if(type !== '' && typeof type !== "undefined") 
-        {
-          if(destination !== '' && typeof destination !== "undefined") 
-          {
-            if(data !== '' && typeof data !== "undefined") 
-            {
-              if(origin !== '' && typeof origin !== "undefined") 
-              {
-                if(context !== '' && typeof context !== "undefined") 
-                {
-                  if(masDestinos)
-                  {
-                    estatus = 200;
-                    resultado.callbackId = "5e55220892cce61967ad7934";
-                  }
-                  else
-                  {
-                    resultado.status = 0;
-                    resultado.message = "OK";
-                  }
-                }
-                else
-                {
-                  resultado.status = "NOK";
-                  resultado.message = "El contexto es requerido";
-                }
-              }
-              else
-              {
-                resultado.status = "NOK";
-                resultado.message = "El origin es requerido";
-              }
-            }
-            else
-            {
-              resultado.status = "NOK";
-              resultado.message = "El data es requerido";
-            }
-          }
-          else
-          {
-            resultado.status = "NOK";
-            resultado.message = "El destination es requerido";
-          }
-        }
-        else
-        {
-          resultado.status = "NOK";
-          resultado.message = "El type es requerido";
-        }
-      }
-      else
-      {
-        resultado.status = "NOK";
-        resultado.message = "El orgID es requerido";
-      }
-    }
-    else
-    {
-      resultado.status = "NOK";
-      resultado.message = "El userID es requerido";
-    }    
-  }
-  else
-  {
-    resultado.status = "NOK";
-    resultado.message = "El channel es requerido";
-  } 
-
-  res.status(200).json(resultado);
-});
-
 router.post('/terminateConversation', async (req, res) => {
   var resultado = {};
 
@@ -570,10 +472,11 @@ router.post('/terminateConversation', async (req, res) => {
           console.log("[terminateConversation] [EPAarray]:: " + true);
           for (var i = 0; i < conversacion.etiquetas.length; i++)
           {
-            console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [FOR] :: " + conversacion.etiquetas[i] );
+            console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
+            
             if(conversacion.etiquetas[i] == "automaticClose")
             {
-              console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [Etiqueta] ::" + true + " :: [FOR] :: " + conversacion.etiquetas[i] );
+              console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [Etiqueta] ::" + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
               bandera_label = false;
             }
           }
@@ -583,7 +486,7 @@ router.post('/terminateConversation', async (req, res) => {
           console.log("[terminateConversation] [EPAarray]:: " + false + " :: [etiquetas] :: " + conversacion.etiquetas);
           if(conversacion.etiquetas == "automaticClose")
           {
-            console.log("[terminateConversation] [EPAarray]:: " + false + " :: [etiquetas] :: " + conversacion.etiquetas + " :: [etiquetas] :: " + true);
+            console.log("[terminateConversation] [EPAarray]:: " + false + " :: [etiquetas SI] :: " + conversacion.etiquetas + " :: [etiquetas] :: " + true);
             bandera_label = false;
           }
         }
