@@ -373,7 +373,7 @@ var funciones = {
 		})
 		.catch(function (error)
 		{
-			console.log("[update_vigencia] :: [error] :: [status] ::" + error.response.status " :: [Code] ::" + error.response.data.code);
+			console.log("[update_vigencia] :: [error] :: [status] ::" + error.response.status +" :: [Code] ::" + error.response.data.code);
 
         	resultado = "Code: " +error.response.data.code + " - Description: " + error.response.data.description;
 		});
