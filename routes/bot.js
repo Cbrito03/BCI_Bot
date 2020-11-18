@@ -150,7 +150,9 @@ router.post('/message', async (req, res) => {
           {
             if(mensaje !== '' && typeof mensaje !== "undefined") 
             {
-              mensaje = mensaje.text.trim();              
+              mensaje = mensaje.text.trim();
+
+              console.log("[BCI] :: [message] :: [lastInteractionType] :: " + context.lastInteractionType + " :: [Diferecnia] :: " + diff);          
 
               if(context.lastInteractionType == "NOTIFICATION" && diff < 24)
               {
@@ -286,7 +288,7 @@ router.post('/message', async (req, res) => {
                       console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
                       if(axios_CEDU.status)
                       {
-                        if(axios_CEDU.result == "10000" /*&& axios_CEDU.result == "10000"*/)
+                        if(axios_CEDU.result == "10000" || axios_CEDU.result == "10006")
                         {
                           await local_function.si_autenticado();
 
