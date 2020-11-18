@@ -135,6 +135,7 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("valida_vigencia"+conversationID);
       localStorage.removeItem("intento"+conversationID);
       localStorage.removeItem("preguntas_EPA_"+conversationID);
+      localStorage.removeItem("guardar_EPA_"+conversationID);
     }
   }
 
@@ -161,9 +162,11 @@ router.post('/message', async (req, res) => {
                 if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
                 {                  
                   resultado.action = msj_preguntas_EPA.action;
+                  resultado.action["type"] = "end"; 
                   resultado.messages.push(msj_preguntas_EPA.messages[1]);
 
                   localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
+                  localStorage.setItem("guardar_EPA_"+conversationID, "true");
                 }
                 else
                 {
@@ -183,6 +186,24 @@ router.post('/message', async (req, res) => {
 
                   await local_function.remove_localStorage();
                 }
+              }
+              else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
+              {
+                resultado.action = msj_fin_EPA.action;
+                resultado.messages.push(msj_fin_EPA.messages[0]);
+
+                var rest_EPA = {
+                  "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                  "pregunta_2" : mensaje,
+                  "horario" : horarios.status,
+                  "id" : user.id,
+                  "name" : user.name,
+                  "channel" : context.channel
+                }
+
+                await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
+
+                await local_function.remove_localStorage();
               }
               else if(horarios.status)
               {
@@ -382,7 +403,7 @@ router.post('/message', async (req, res) => {
                     //await local_function.no_autenticado();
                   }                  
                 }
-              }              
+              }             
               else
               {
                 resultado.action = horarios.action;
