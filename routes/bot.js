@@ -152,9 +152,9 @@ router.post('/message', async (req, res) => {
             {
               mensaje = mensaje.text.trim();
 
-              console.log("[BCI] :: [message] :: [lastInteractionType] :: " + context.lastInteractionType + " :: [Diferecnia] :: " + diff);          
+              console.log("[BCI] :: [message] :: [lastMessageFrom] :: " + context.lastMessageFrom + " :: [Diferecnia] :: " + diff);          
 
-              if(context.lastInteractionType == "NOTIFICATION" && diff < 24)
+              if(context.lastMessageFrom == "NOTIFICATION" && diff < 24)
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
                 console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
