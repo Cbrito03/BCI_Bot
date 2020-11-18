@@ -341,12 +341,13 @@ var funciones = {
     update_vigencia: async function(num,rut)
     {
     	console.log("[update_vigencia] :: [NUM] :: " + num + " :: [RUT] :: " + rut);
+    	console.log("[update_vigencia] :: [NUM] :: [Tipo] " + typeof num + " :: [RUT] :: " + typeof rut);
 
     	var resultado = false;
 
     	var data = {
     		"idPerson": "bci:"+rut,
-		    "phone": num,
+		    "phone": num.toString(),
 		    "validity": config.validaty
     	};
 
@@ -375,7 +376,9 @@ var funciones = {
 		{
 			console.log("[update_vigencia] :: [error] :: [Code] ::");
 
-        	resultado = "Code: " +error.response.data.code + " - Description: " + error.response.data.description;
+        	//resultado = "Code: " +error.response.data.code + " - Description: " + error.response.data.description;
+
+        	resultado = "Code: " + error.toString();
 		});
 
         console.log("[update_vigencia] :: [resultado] :: " + resultado);
