@@ -350,15 +350,23 @@ router.post('/message', async (req, res) => {
                           }
                           else // cambiar valor a  no autenticado en el contexto
                           {
-                            await local_function.no_autenticado();
-                            await local_function.remove_localStorage();
+                            await local_function.si_autenticado();
+
+                            localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
+
+                            /*await local_function.no_autenticado();
+                            await local_function.remove_localStorage();*/
                           }
                         }
                       }
                       else // cambiar valor a  no autenticado en el contexto
                       {
-                        await local_function.no_autenticado();
-                        await local_function.remove_localStorage();
+                        await local_function.si_autenticado();
+
+                        localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
+
+                        /*await local_function.no_autenticado();
+                        await local_function.remove_localStorage();*/
                       }                      
                     }
                     else
