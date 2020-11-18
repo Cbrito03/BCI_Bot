@@ -189,6 +189,8 @@ router.post('/message', async (req, res) => {
               }
               else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
               {
+                console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+conversationID));
+                
                 resultado.action = msj_fin_EPA.action;
                 resultado.messages.push(msj_fin_EPA.messages[0]);
 
