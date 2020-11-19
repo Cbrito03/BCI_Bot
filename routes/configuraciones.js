@@ -135,16 +135,16 @@ router.post("/config/insert", async (req, res)=>{
     
     var respuesta = {};
 
-    console.log('Entro a /msjInicial/insert :: ');
+    console.log('Entro a /config/insert :: ');
 
-    const msjInicial = new MsjInicial(
+    const config = new Config(
     {
         titulo : req.body.titulo,
-        texto : req.body.texto,
-        status : req.body.status
+        descripcion : req.body.descripcion,
+        valor : req.body.valor
     });
 
-    const result = await msjInicial.save();    
+    const result = await config.save();    
 
     respuesta.status = "OK";
     respuesta.mensaje = result;
@@ -156,13 +156,13 @@ router.post("/config/insert", async (req, res)=>{
 
 // ######## CONSULTAS
 
-router.get("/msjInicial/search", async (req, res)=>{
+router.get("/config/search", async (req, res)=>{
     console.log('Entro a /msjInicial/obtenerAll');
 
     var respuesta = {};
-    const msj = await MsjInicial.find();
+    const config = await Config.find({"status": true});
 
-    if (msj.length < 1)
+    if (config.length < 1)
     {
         respuesta.status = "NOK";
         respuesta.mensaje = "No hay información disponible";
@@ -170,7 +170,7 @@ router.get("/msjInicial/search", async (req, res)=>{
     else
     {
         respuesta.status = "OK";
-        respuesta.mensaje = msj;
+        respuesta.mensaje = config;
     }
     
     res.status(200).send(respuesta);
@@ -178,7 +178,7 @@ router.get("/msjInicial/search", async (req, res)=>{
 
 // ######## MODIFICACIONES
 
-router.put("/msjInicial/update", async (req, res)=>{
+router.put("/config/update", async (req, res)=>{
     
     console.log('Entro a /msjInicial/modificar :: ');
 

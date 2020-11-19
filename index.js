@@ -46,17 +46,6 @@ app.use(msjInicial);
 app.use(config);
 app.use(express.static("web"));
 
-app.get('/', (req, res) => {
-	var now = moment();
-	var fecha_actual = now.tz("America/Guatemala").format("YYYY-MM-DD HH:mm:ss");
-	var anio = now.tz("America/Guatemala").format("YYYY");
-
-	var respuesta = "Bienvenido al menú Bot de <strong>BCI</strong> <br>" + 
-	   "<strong> Sixbell "+anio+" - Versión: 1.0.0 </strong><br>";
-
-	res.status(200).send(respuesta);
-});
-
 app.listen(port, app, async () => {
     console.log("[Brito] :: API escuchando en puerto", port, 'Conectando a MongoDb...');
 

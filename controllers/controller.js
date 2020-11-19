@@ -3,6 +3,7 @@ const moment_timezone = require('moment-timezone');
 const MsjInicial = require('../models/MsjInicial');
 const Horarios = require('../models/Horarios');
 const BotMensajes = require('../models/BotMensajes.js');
+const Config = require('../models/Configuracion');
 const botMsj = require('../controllers/botMsj.js');
 const Reportes = require('../models/Reporte');
 const jquery = require('jquery');
@@ -14,15 +15,56 @@ const xmlParser = require('xml2json');
 
 var config = 
 {
-	validaty : 5,
-	urlCEDU : "https://www.sinacofi.cl/SinacofiWS_CEDU/CEDU0702.asmx",
-	urlSNPV : "https://www.sinacofi.cl/SinacofiWS_SNPV/SNPV1801.asmx?wsdl",
-	url_get_vigencia : "https://psservices.qa-puresocial.com/perfiles/getVigencia",
-	url_update_vigencia : "https://psservices.qa-puresocial.com/perfiles/updateVigencia",
-	authorization : 'Bearer eyKhbGciOiJIUzdxmklamwkdqwnondqown.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlNpeGJlbGwgQ29udmVyc2F0aW9ucyIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.UIFndsadskacascda_dasda878Cassda_XxsaSllip0__saWEasqwed2341cfSAS'
+	validaty : "",
+	urlCEDU : "",
+	urlSNPV : "",
+	url_get_vigencia : "",
+	url_update_vigencia : "",
+	authorization : '',
+	url_EPA : "",
 }
 
-var funciones = {
+var configuraciones = {
+	get_config : async function()
+	{
+		const result = await Config.find({"status": true});		
+
+	    if (result.length >= 1)
+	    {
+	    	for (var i = 0; i < result.length; i++)
+	    	{
+	    		switch (result[i].titulo)
+	    		{
+					case 'validaty':
+						config.validaty = parseInt(result[i].valor);
+					break;
+					case 'urlCEDU':
+						config.urlCEDU = result[i].valor;
+					break;
+					case 'urlSNPV':
+						config.urlSNPV = result[i].valor;
+					break;
+					case 'url_EPA':
+						config.url_EPA= result[i].valor;
+					break;
+					case 'Get_Vigencia':
+						config.url_get_vigencia = result[i].valor;
+					break;				
+					case 'Update_Vigencia':
+						config.url_update_vigencia = result[i].valor;
+					break;
+					case 'Token_Autorización':
+						config.authorization = result[i].valor;
+					break;				
+				}
+	    	}
+	    }
+
+	    return config;	
+    }
+};
+
+var funciones = {	
 	validarHorario : async function()
 	{
 		var result = { status : false };
@@ -97,6 +139,19 @@ var funciones = {
 		var obj = "";
 
 	    const result = await BotMensajes.find({"status": true, "tipo" : 6});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
+    cargar_inicio_EPA: async function()
+	{
+		var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 10});
 
 	    if (result.length >= 1)
 	    {
@@ -205,7 +260,9 @@ var funciones = {
     	return result;
     },
     preguntas_sinacofi_CEDU: async function(rut, numSerie)
-	{
+	{	
+		var get_config = await configuraciones.get_config();
+
 		var obj = {};	
 
 		var data = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://sinacofi.cl/WebServices">'+
@@ -259,6 +316,8 @@ var funciones = {
     },
     preguntas_sinacofi_SNPV: async function(e, rut)
 	{
+		var get_config = await configuraciones.get_config();
+
 		var obj = [];
 
 		var data = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://sinacofi.cl/WebServices" xmlns:sdn="http://wsdl.sinacofi.cl/SDN122REQ">'+
@@ -303,6 +362,8 @@ var funciones = {
     },
     valida_vigencia: async function(num)
     {
+    	var get_config = await configuraciones.get_config();
+
     	console.log("[valida_vigencia] :: [NUM] :: " + num + " - " + typeof num);
 
     	var resultado = { "authValidity" : false };
@@ -340,6 +401,8 @@ var funciones = {
     },
     update_vigencia: async function(num,rut)
     {
+    	var get_config = await configuraciones.get_config();
+
     	console.log("[update_vigencia] :: [NUM] :: " + num + " :: [RUT] :: " + rut);
     	console.log("[update_vigencia] :: [NUM] :: [Tipo] " + typeof num + " :: [RUT] :: " + typeof rut);
 
@@ -388,3 +451,4 @@ var funciones = {
 }
 
 exports.funciones = funciones;
+exports.configuraciones = configuraciones;

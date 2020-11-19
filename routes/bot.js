@@ -51,10 +51,10 @@ router.post('/message', async (req, res) => {
     }
   }
 
-  console.log("lastInteractionFinishTime :: " + context.lastInteractionFinishTime);
+  console.log("lastMessageTime :: " + context.lastMessageTime);
 
   var now = moment();
-  var fechaStamp = moment(context.lastInteractionFinishTime)/*.subtract(6, 'hours')*/;
+  var fechaStamp = moment(context.lastMessageTime)/*.subtract(6, 'hours')*/;
   fechaStamp = moment(fechaStamp).format("YYYY-MM-DD HH:mm:ss");
   var fecha_actual = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
   var fecha2 = moment(fecha_actual, "YYYY-MM-DD HH:mm:ss");
@@ -99,7 +99,8 @@ router.post('/message', async (req, res) => {
     {
       console.log("[local_function] :: [no_autenticado]");
 
-      resultado.action = msj_aut_exitosa.action;                    
+      resultado.action = msj_aut_exitosa.action;
+      resultado.action.saveHistory = true;                  
       resultado.messages.push(msj_aut_exitosa.messages[1]);
       resultado.additionalInfo.authValidity = false;   
     },
@@ -261,17 +262,21 @@ router.post('/message', async (req, res) => {
                         localStorage.setItem("bot_bci_"+conversationID, "cliente");
                       }                      
                       
-                      // No existe  o  si esta autenticado pero el rut no es igual  o  NO esta autenticado y el rut no es igual
-                      if(vig === 99 || (vig == true && rt_vig != mensaje) || (vig == false && rt_vig != mensaje))
+                      // No existe  o  NO esta autenticado y el rut no es igual
+                      if(vig === 99 || vig == false && rt_vig != mensaje)
                       { 
-                        //await local_function.no_cliente();
+                        await local_function.no_cliente();
 
+                        await local_function.remove_localStorage();
+                      }
+
+                      //si esta autenticado pero el rut no es igual
+                      if(vig == true && rt_vig != mensaje)
+                      { 
                         await local_function.si_autenticado();
 
                         localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
-
-                        //await local_function.remove_localStorage();
-                      }  
+                      }   
                       
                       // NO esta autenticado y el rut si es igual
                       if(vig == false && rt_vig == mensaje) 
@@ -492,14 +497,20 @@ router.post('/terminateConversation', async (req, res) => {
   var ejecutivo = req.body.ejecutivo;
   var conversacion = req.body.conversacion;
 
+  var msj_inicio_EPA = await controlador.funciones.cargar_inicio_EPA();
+
+  var msj_pregunta_1_EPA = await controlador.funciones.cargar_preguntas_EPA();
+
+  var config = await controlador.configuraciones.get_config();
+
+  console.log("EPA config", config);
+
   if(persona !== '' && typeof persona !== "undefined") 
   {
     if(ejecutivo !== '' && typeof ejecutivo !== "undefined") 
     {
       if(conversacion !== '' && typeof conversacion !== "undefined") 
-      { 
-        var url = "https://psservices.qa-puresocial.com/notification/send";
-
+      {
         var bandera_label = true;
 
         console.log("[terminateConversation] [EPADatos]:: [userId] ::" + conversacion.userId  + " :: [orgId] :: " + conversacion.orgId + " :: [telefono] ::" + persona.telefono);
@@ -539,22 +550,30 @@ router.post('/terminateConversation', async (req, res) => {
               "type": "recipient",
               "recipients": [ persona.telefono ]
             },
-            "data": {
-              "text" : "1. Por favor evalúa nuestra atención. En una escala del 1 al 5, donde 1 es pésimo y 5 es excelente."
+            "data":{
+                "text" : msj_inicio_EPA.messages[0].text + " \n " + msj_pregunta_1_EPA.messages[0].text
             },
             "origin": "conversations",
             "context": {},
             "saveHistory": false,
             "systemMessage": "EPA Enviada al cliente",
             "botNotification": true
-          }
+          };          
 
+          console.log("[terminateConversation] [EPADatos] :: [data channel] :: " + data.channel);
+          console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
+          console.log("[terminateConversation] [EPADatos] :: [data orgID] :: " + data.orgID);
+          console.log("[terminateConversation] [EPADatos] :: [data data Text :: " + data.data.text);
+          console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
+          console.log("[terminateConversation] [EPADatos] :: [config.url_EPA] :: " + config.url_EPA);
+          console.log("[terminateConversation] [EPADatos] :: [config.authorization] :: " + config.authorization);
+          
           var options = {
             method : 'POST',
-            url : url,
+            url : config.url_EPA,
             headers : { 
               'Content-Type':'application/json',
-              'Authorization': "Bearer eyKhbGciOiJIUzdxmklamwkdqwnondqown.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlNpeGJlbGwgQ29udmVyc2F0aW9ucyIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.UIFndsadskacascda_dasda878Cassda_XxsaSllip0__saWEasqwed2341cfSAS"
+              'Authorization': config.authorization //"Bearer eyKhbGciOiJIUzdxmklamwkdqwnondqown.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlNpeGJlbGwgQ29udmVyc2F0aW9ucyIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.UIFndsadskacascda_dasda878Cassda_XxsaSllip0__saWEasqwed2341cfSAS"
             },
             data: data
           };
@@ -659,5 +678,20 @@ router.post('/terminateConversation', async (req, res) => {
 
   res.status(estatus).json(resultado);
 });*/
+
+router.get('/test', async (req, res) => {
+  var now = moment();
+  var fecha_actual = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+  var anio = now.tz("America/Santiago").format("YYYY");
+
+  var horarios = await controlador.funciones.validarHorario();
+  
+  var respuesta = "Bienvenido al menú Bot de <strong>BCI</strong> <br> " +
+      "Hora CL Actual: <strong> " + fecha_actual + " </strong><br> " +
+      "Horario habil: <strong> " + horarios.status + " </strong><br> " +
+      "<strong> Sixbell "+anio+" - Versión: 1.0.0 </strong><br>";
+
+  res.status(200).send(respuesta);
+});
 
 module.exports = router
