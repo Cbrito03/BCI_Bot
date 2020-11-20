@@ -1,7 +1,0 @@
-{ "dia" : 0, "nombre" : "Domingo", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : false }
-{ "dia" : 1, "nombre" : "Lunes", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : true }
-{ "dia" : 2, "nombre" : "Martes", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : true }
-{ "dia" : 3, "nombre" : "Miercoles", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : true }
-{ "dia" : 4, "nombre" : "Jueves", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : true }
-{ "dia" : 5, "nombre" : "Viernes", "open_hour" : 8, "open_minute" : 50, "close_hour" : 14, "close_minute" : 0, "status" : true }
-{ "dia" : 6, "nombre" : "Sabado", "open_hour" : 8, "open_minute" : 50, "close_hour" : 17, "close_minute" : 50, "status" : false }

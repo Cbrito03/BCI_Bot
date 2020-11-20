@@ -4,7 +4,6 @@ const moment_timezone = require('moment-timezone');
 const controlador = require('../controllers/controller.js');
 const Horarios = require('../models/Horarios');
 const localStorage = require('localStorage');
-const configs = require('../controllers/config.js');
 const express = require('express');
 const moment = require('moment');
 const axios = require('axios');
@@ -27,8 +26,6 @@ router.post('/message', async (req, res) => {
   var user = req.body.user;
   var context = req.body.context;
   var mensaje = req.body.message;
-
-  var config = configs;
 
   var estatus = 200;
 
@@ -159,33 +156,48 @@ router.post('/message', async (req, res) => {
               if(context.lastMessageFrom == "NOTIFICATION" && diff < 24)
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
-                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
-                if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
-                {                  
-                  resultado.action = msj_preguntas_EPA.action;
-                  resultado.action["type"] = "end"; 
-                  resultado.messages.push(msj_preguntas_EPA.messages[1]);
+                 console.log("Prueba 1 :: ", getStorage('clave_EPA_' + user.id));
+  
+                if (getStorage('clave_EPA_' + user.id) != null)
+                {
+                  console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
+                  
+                  if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
+                  {                  
+                    resultado.action = msj_preguntas_EPA.action;
+                    resultado.action["type"] = "end"; 
+                    resultado.messages.push(msj_preguntas_EPA.messages[1]);
 
-                  localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
-                  localStorage.setItem("guardar_EPA_"+conversationID, "true");
+                    localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
+                    localStorage.setItem("guardar_EPA_"+conversationID, "true");
+                  }
+                  else
+                  {
+                    resultado.action = msj_fin_EPA.action;
+                    resultado.messages.push(msj_fin_EPA.messages[0]);
+
+                    var rest_EPA = {
+                      "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                      "pregunta_2" : mensaje,
+                      "horario" : horarios.status,
+                      "id" : user.id,
+                      "name" : user.name,
+                      "channel" : context.channel
+                    }
+
+                    await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
+
+                    await local_function.remove_localStorage();
+                  }
                 }
                 else
                 {
+                  console.log("[EPA] :: pregunta_EPA :: Los 15 min ya pasaron");
                   resultado.action = msj_fin_EPA.action;
                   resultado.messages.push(msj_fin_EPA.messages[0]);
 
-                  var rest_EPA = {
-                    "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
-                    "pregunta_2" : mensaje,
-                    "horario" : horarios.status,
-                    "id" : user.id,
-                    "name" : user.name,
-                    "channel" : context.channel
-                  }
-
-                  await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-
                   await local_function.remove_localStorage();
+                  
                 }
               }
               else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
@@ -426,7 +438,8 @@ router.post('/message', async (req, res) => {
               {
                 resultado.action = horarios.action;
                 resultado.messages = horarios.messages;
-                await local_function.remove_localStorage();             
+                setStorage('clave_EPA_' + user.id, 'Valor_EPA', 60 )
+                //await local_function.remove_localStorage();             
               }
               console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
             }
@@ -587,7 +600,8 @@ router.post('/terminateConversation', async (req, res) => {
             {
               resultado.status = response.data.status;
               resultado.message = response.data.message;
-              resultado.idCanal = response.data.idCanal;          
+              resultado.idCanal = response.data.idCanal;
+              setStorage('clave_EPA_' + persona.telefono, 'Valor_EPA', parseInt(config.timer_EPA))   // 900 15 minutos   
             }
             else
             {

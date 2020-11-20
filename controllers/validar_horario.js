@@ -1,6 +1,5 @@
 const moment_timezone = require('moment-timezone');
 const jquery = require('jquery');
-const config = require('./config.js');
 const moment = require('moment');
 var fecha_actual = "";
 

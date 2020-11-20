@@ -4,7 +4,6 @@ const MsjInicial = require('../models/MsjInicial');
 const Horarios = require('../models/Horarios');
 const BotMensajes = require('../models/BotMensajes.js');
 const Config = require('../models/Configuracion');
-const botMsj = require('../controllers/botMsj.js');
 const Reportes = require('../models/Reporte');
 const jquery = require('jquery');
 const moment = require('moment');
@@ -22,6 +21,7 @@ var config =
 	url_update_vigencia : "",
 	authorization : '',
 	url_EPA : "",
+	timer_EPA : ""
 }
 
 var configuraciones = {
@@ -46,6 +46,9 @@ var configuraciones = {
 					break;
 					case 'url_EPA':
 						config.url_EPA= result[i].valor;
+					break;
+					case 'timer_EPA':
+						config.timer_EPA= result[i].valor;
 					break;
 					case 'Get_Vigencia':
 						config.url_get_vigencia = result[i].valor;
