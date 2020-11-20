@@ -272,10 +272,13 @@ router.post('/message', async (req, res) => {
 
                       //si esta autenticado pero el rut no es igual
                       if(vig == true && rt_vig != mensaje)
-                      { 
-                        await local_function.si_autenticado();
+                      {
+                        await local_function.no_cliente();
 
-                        localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
+                        await local_function.remove_localStorage();
+                        //await local_function.si_autenticado();
+
+                        //localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
                       }   
                       
                       // NO esta autenticado y el rut si es igual
