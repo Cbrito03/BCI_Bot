@@ -438,8 +438,7 @@ router.post('/message', async (req, res) => {
               {
                 resultado.action = horarios.action;
                 resultado.messages = horarios.messages;
-                setStorage('clave_EPA_' + user.id, 'Valor_EPA', 60 )
-                //await local_function.remove_localStorage();             
+                await local_function.remove_localStorage();             
               }
               console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
             }
@@ -648,53 +647,6 @@ router.post('/terminateConversation', async (req, res) => {
 
   res.status(200).json(resultado);
 });
-
-/*app.post('/terminate', (req, res) => {
-  var result, resultado;
-  var bandera = false , estatus = 200;
-
-  var conversationID = req.body.conversationId;
-  var RRSS = req.body.RRSS;
-  var canal = req.body.channel;
-  var contexto = req.body.context;
-
-  if(RRSS !== '' && typeof RRSS !== "undefined") 
-  {
-      if(canal !== '' && typeof canal !== "undefined") 
-      {
-        if(contexto !== '' && typeof contexto !== "undefined") 
-        {
-          estatus = 200;
-          resultado = {
-            "estado": "OK"
-          }
-        }
-        else
-        {
-          estatus = 400;
-          resultado = {
-            "estado": "El valor de contexto es requerido"
-          }
-        }
-      }
-      else
-      {
-        estatus = 400;
-        resultado = {
-          "estado": "El valor de canal es requerido"
-        }
-      } 
-  }
-  else
-  {
-    estatus = 400;
-      resultado = {
-        "estado": "El valor de RRSS es requerido"
-      }
-  } 
-
-  res.status(estatus).json(resultado);
-});*/
 
 router.get('/test', async (req, res) => {
   var now = moment();
