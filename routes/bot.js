@@ -156,7 +156,7 @@ router.post('/message', async (req, res) => {
               if(context.lastMessageFrom == "NOTIFICATION" && diff < 24)
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
-                 console.log("Prueba 1 :: ", getStorage('clave_EPA_' + user.id));
+                console.log("Prueba 1 :: " + getStorage('clave_EPA_' + user.id) + " :: [user.id] :: " + user.id);
   
                 if (getStorage('clave_EPA_' + user.id) != null)
                 {
@@ -582,6 +582,7 @@ router.post('/terminateConversation', async (req, res) => {
           console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
           console.log("[terminateConversation] [EPADatos] :: [config.url_EPA] :: " + config.url_EPA);
           console.log("[terminateConversation] [EPADatos] :: [config.authorization] :: " + config.authorization);
+          console.log("[terminateConversation] [EPADatos] :: [config.timer_EPA] :: " + config.timer_EPA + " :: [persona.telefono] :: " + persona.telefono);
           
           var options = {
             method : 'POST',
