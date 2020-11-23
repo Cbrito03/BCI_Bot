@@ -431,7 +431,7 @@ var funciones = {
 
         await axios(options).then(function (response)
         {
-		  	console.log("[valida_vigencia] :: [response] :: [Status] :: " + response.status + " :: [valida_vigencia] :: " + esponse.statusText);
+		  	console.log("[valida_vigencia] :: [response] :: [Status] :: " + response.status + " :: [valida_vigencia] :: " + response.statusText);
 
 		  	if(response.status == 200 && response.statusText == 'OK')
 	        {
