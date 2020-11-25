@@ -12,6 +12,12 @@ const async = require('async');
 
 const xmlParser = require('xml2json');
 
+const cron = require("node-cron");
+
+const util = require('util');
+
+var clientTimeoutControl = {};
+
 var config = 
 {
 	validaty : "",
@@ -64,7 +70,7 @@ var configuraciones = {
 	    }
 
 	    return config;	
-    }
+    }    
 };
 
 var funciones = {	
@@ -450,6 +456,82 @@ var funciones = {
         console.log("[update_vigencia] :: [resultado] :: " + resultado);
 
         return resultado;
+    },
+    startClientTimeOut : async function(e,data)
+    {
+    	console.log("[startClientTimeOut] [EPA Start Timer] [IDCliente] :: " + e);
+    	
+    	var get_config = await configuraciones.get_config();
+
+    	var msj_fin_EPA = await this.cargar_fin_EPA();
+
+    	var tiempo = Math.floor(parseInt(get_config.timer_EPA) * 60000);
+
+    	console.log("[startClientTimeOut] [EPA Start Timer] [Tiempo] :: " + tiempo);
+
+    	data.systemMessage = "EPA NO RESPONDIDO";
+    	data.botNotification = false;
+    	data.data["text"] = msj_fin_EPA.messages[0];
+
+    	clientTimeoutControl[e] = {
+			dato: data,
+			timeOut: ""		  
+		};
+
+		console.log("[startClientTimeOut] [EPADatos] :: [data channel] :: " + data.channel);
+            console.log("[startClientTimeOut] [EPADatos] :: [data userID] :: " + data.userID);
+            console.log("[startClientTimeOut] [EPADatos] :: [data orgID] :: " + data.orgID);
+            console.log("[startClientTimeOut] [EPADatos] :: [data data Text :: " + data.data.text);
+            console.log("[startClientTimeOut] [EPADatos] :: [data userID] :: " + data.userID);
+            console.log("[startClientTimeOut] [EPADatos] :: [get_config.url_EPA] :: " + get_config.url_EPA);
+            console.log("[startClientTimeOut] [EPADatos] :: [get_config.authorization] :: " + get_config.authorization);
+            console.log("[startClientTimeOut] [EPADatos] :: [persona.telefono] :: " + persona.telefono);
+
+		clientTimeoutControl[e].timeOut = setTimeout( () =>
+		{
+			console.log("[startClientTimeOut] [Inicia el Timer] [setTimeout] :: " + e);
+
+			var options = {
+	            method : 'POST',
+	            url : get_config.url_EPA,
+	            headers : { 
+	              'Content-Type':'application/json',
+	              'Authorization': get_config.authorization //"Bearer eyKhbGciOiJIUzdxmklamwkdqwnondqown.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlNpeGJlbGwgQ29udmVyc2F0aW9ucyIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.UIFndsadskacascda_dasda878Cassda_XxsaSllip0__saWEasqwed2341cfSAS"
+	            },
+	            data: data
+	        };
+
+	        axios(options).then(function (response)
+			{
+				console.log("[startClientTimeOut] [EPAOK] [status] :: " + response.data.status + " :: [EPAMenssage] :: " + response.data.message);
+				this.clearClientTimeOut(e);
+			})
+			.catch(function (error)
+			{
+				console.log("[startClientTimeOut] [EPAERROR] [status] :: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
+				this.clearClientTimeOut(e);
+			});
+
+			console.log("[startClientTimeOut] [EPATimer] [ID Cliente]  :: " + e); 
+		}, tiempo);				
+    },
+    clearClientTimeOut : async function(keyTimeout)
+    {
+    	console.log("[clearClientTimeOut] [EPAEClear] [ID Cliente] :: " + keyTimeout);
+
+    	if(clientTimeoutControl && Object.keys(clientTimeoutControl).length > 0)
+    	{
+    		console.log("[clearClientTimeOut] [EPAEClear] [Existe llave] :: " + clientTimeoutControl.hasOwnProperty(keyTimeout));
+
+    		if(clientTimeoutControl.hasOwnProperty(keyTimeout))
+    		{
+    			console.log("[clearClientTimeOut] [EPAEClear] [Se detiene el timer y se elimina el objeto] :: " + keyTimeout);
+    			
+    			clearTimeout(clientTimeoutControl[keyTimeout].timeOut);
+
+    			delete clientTimeoutControl[keyTimeout];
+    		}
+    	}
     }
 }
 

@@ -8,6 +8,8 @@ const express = require('express');
 const moment = require('moment');
 const axios = require('axios');
 const async = require('async');
+var cronJob = require('cron').CronJob;
+var _eval = require('eval');
 
 const router = express.Router();
 
@@ -156,48 +158,36 @@ router.post('/message', async (req, res) => {
               if(context.lastMessageFrom == "NOTIFICATION" && diff < 24)
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
-                console.log("Prueba 1 :: " + getStorage('clave_EPA_' + user.id) + " :: [user.id] :: " + user.id);
-  
-                if (getStorage('clave_EPA_' + user.id) != null)
-                {
-                  console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
+               
+                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
                   
-                  if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
-                  {                  
-                    resultado.action = msj_preguntas_EPA.action;
-                    resultado.action["type"] = "end"; 
-                    resultado.messages.push(msj_preguntas_EPA.messages[1]);
+                if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
+                {                  
+                  resultado.action = msj_preguntas_EPA.action;
+                  resultado.messages.push(msj_preguntas_EPA.messages[1]);
 
-                    localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
-                    localStorage.setItem("guardar_EPA_"+conversationID, "true");
-                  }
-                  else
-                  {
-                    resultado.action = msj_fin_EPA.action;
-                    resultado.messages.push(msj_fin_EPA.messages[0]);
-
-                    var rest_EPA = {
-                      "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
-                      "pregunta_2" : mensaje,
-                      "horario" : horarios.status,
-                      "id" : user.id,
-                      "name" : user.name,
-                      "channel" : context.channel
-                    }
-
-                    await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-
-                    await local_function.remove_localStorage();
-                  }
+                  localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
+                  localStorage.setItem("guardar_EPA_"+conversationID, "true");
                 }
-                else
+                else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
                 {
-                  console.log("[EPA] :: pregunta_EPA :: Los 15 min ya pasaron");
+                  console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+conversationID));
+
                   resultado.action = msj_fin_EPA.action;
                   resultado.messages.push(msj_fin_EPA.messages[0]);
 
+                  var rest_EPA = {
+                    "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                    "pregunta_2" : mensaje,
+                    "horario" : horarios.status,
+                    "id" : user.id,
+                    "name" : user.name,
+                    "channel" : context.channel
+                  }
+
+                  await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
+                  await controlador.funciones.clearClientTimeOut(user.id);
                   await local_function.remove_localStorage();
-                  
                 }
               }
               else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
@@ -217,7 +207,7 @@ router.post('/message', async (req, res) => {
                 }
 
                 await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-
+                await controlador.funciones.clearClientTimeOut(user.id);
                 await local_function.remove_localStorage();
               }
               else if(horarios.status)
@@ -516,7 +506,9 @@ router.post('/terminateConversation', async (req, res) => {
 
   var msj_pregunta_1_EPA = await controlador.funciones.cargar_preguntas_EPA();
 
-  var config = await controlador.configuraciones.get_config();
+  var msj_inicio_EPA = await controlador.funciones.cargar_inicio_EPA();
+
+  var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
 
   console.log("EPA config", config);
 
@@ -576,13 +568,13 @@ router.post('/terminateConversation', async (req, res) => {
           };          
 
           console.log("[terminateConversation] [EPADatos] :: [data channel] :: " + data.channel);
-          console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
-          console.log("[terminateConversation] [EPADatos] :: [data orgID] :: " + data.orgID);
-          console.log("[terminateConversation] [EPADatos] :: [data data Text :: " + data.data.text);
-          console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
-          console.log("[terminateConversation] [EPADatos] :: [config.url_EPA] :: " + config.url_EPA);
-          console.log("[terminateConversation] [EPADatos] :: [config.authorization] :: " + config.authorization);
-          console.log("[terminateConversation] [EPADatos] :: [config.timer_EPA] :: " + config.timer_EPA + " :: [persona.telefono] :: " + persona.telefono);
+            console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
+            console.log("[terminateConversation] [EPADatos] :: [data orgID] :: " + data.orgID);
+            console.log("[terminateConversation] [EPADatos] :: [data data Text :: " + data.data.text);
+            console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
+            console.log("[terminateConversation] [EPADatos] :: [config.url_EPA] :: " + config.url_EPA);
+            console.log("[terminateConversation] [EPADatos] :: [config.authorization] :: " + config.authorization);
+            console.log("[terminateConversation] [EPADatos] :: [persona.telefono] :: " + persona.telefono);
           
           var options = {
             method : 'POST',
@@ -601,7 +593,9 @@ router.post('/terminateConversation', async (req, res) => {
               resultado.status = response.data.status;
               resultado.message = response.data.message;
               resultado.idCanal = response.data.idCanal;
-              setStorage('clave_EPA_' + persona.telefono, 'Valor_EPA', parseInt(config.timer_EPA))   // 900 15 minutos   
+
+              controlador.funciones.startClientTimeOut(persona.telefono, data);
+              //setStorage('clave_EPA_' + persona.telefono, 'Valor_EPA', parseInt(config.timer_EPA));  // 900 15 minutos   }
             }
             else
             {
@@ -648,6 +642,7 @@ router.post('/terminateConversation', async (req, res) => {
 
   res.status(200).json(resultado);
 });
+
 
 router.get('/test', async (req, res) => {
   var now = moment();
