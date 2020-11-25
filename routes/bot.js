@@ -508,7 +508,9 @@ router.post('/terminateConversation', async (req, res) => {
 
   var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
 
-  console.log("EPA config", config);
+  var config = await controlador.configuraciones.get_config();
+
+  console.log("EPA config :: " + config.url_EPA);
 
   if(persona !== '' && typeof persona !== "undefined") 
   {
