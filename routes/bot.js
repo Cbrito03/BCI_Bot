@@ -8,8 +8,6 @@ const express = require('express');
 const moment = require('moment');
 const axios = require('axios');
 const async = require('async');
-var cronJob = require('cron').CronJob;
-var _eval = require('eval');
 
 const router = express.Router();
 

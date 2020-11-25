@@ -12,10 +12,6 @@ const async = require('async');
 
 const xmlParser = require('xml2json');
 
-const cron = require("node-cron");
-
-const util = require('util');
-
 var clientTimeoutControl = {};
 
 var config = 
@@ -460,7 +456,7 @@ var funciones = {
     startClientTimeOut : async function(e,data)
     {
     	console.log("[startClientTimeOut] [EPA Start Timer] [IDCliente] :: " + e);
-    	
+
     	var get_config = await configuraciones.get_config();
 
     	var msj_fin_EPA = await this.cargar_fin_EPA();
