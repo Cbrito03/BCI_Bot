@@ -505,7 +505,7 @@ var funciones = {
 			})
 			.catch(function (error)
 			{
-				console.log("[startClientTimeOut] [EPAERROR] [status] :: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
+				console.log("[startClientTimeOut] [EPAERROR] [status] :: ", error);
 				this.clearClientTimeOut(e);
 			});
 
