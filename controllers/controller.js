@@ -465,9 +465,11 @@ var funciones = {
 
     	console.log("[startClientTimeOut] [EPA Start Timer] [Tiempo] :: " + tiempo);
 
+    	console.log("[startClientTimeOut] [EPA Start Timer] [Data] :: ", data);
+
     	data.systemMessage = "EPA NO RESPONDIDO";
     	data.botNotification = false;
-    	data.data["text"] = msj_fin_EPA.messages[0];
+    	data.data["text"] = msj_fin_EPA.messages[0].text;
 
     	clientTimeoutControl[e] = {
 			dato: data,
@@ -481,8 +483,7 @@ var funciones = {
             console.log("[startClientTimeOut] [EPADatos] :: [data userID] :: " + data.userID);
             console.log("[startClientTimeOut] [EPADatos] :: [get_config.url_EPA] :: " + get_config.url_EPA);
             console.log("[startClientTimeOut] [EPADatos] :: [get_config.authorization] :: " + get_config.authorization);
-            console.log("[startClientTimeOut] [EPADatos] :: [persona.telefono] :: " + persona.telefono);
-
+            
 		clientTimeoutControl[e].timeOut = setTimeout( () =>
 		{
 			console.log("[startClientTimeOut] [Inicia el Timer] [setTimeout] :: " + e);
