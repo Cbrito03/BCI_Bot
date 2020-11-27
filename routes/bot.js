@@ -66,21 +66,15 @@ router.post('/message', async (req, res) => {
 
   console.log("[BCI] :: [message] :: [horarios] :: " + horarios.status);
 
-  var msj_inicial = await controlador.funciones.cargar_msj_incial();
-
-  var msj_cliente = await controlador.funciones.cargar_mensajes();
-
-  var msj_no_cliente = await controlador.funciones.cargar_no_cliente();
-
-  var msj_aut_exitosa = await controlador.funciones.cargar_aut_exitoso();
-
-  var msj_aut_erroneo = await controlador.funciones.cargar_aut_errroneo();
-
-  var msj_preguntas_rut = await controlador.funciones.cargar_preguntas_rut();
-
-  var msj_preguntas_EPA = await controlador.funciones.cargar_preguntas_EPA();
-
-  var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
+  // Obtener mensajes de la base de datos
+    var msj_inicial = await controlador.funciones.cargar_msj_incial();
+    var msj_cliente = await controlador.funciones.cargar_mensajes();
+    var msj_no_cliente = await controlador.funciones.cargar_no_cliente();
+    var msj_aut_exitosa = await controlador.funciones.cargar_aut_exitoso();
+    var msj_aut_erroneo = await controlador.funciones.cargar_aut_errroneo();
+    var msj_preguntas_rut = await controlador.funciones.cargar_preguntas_rut();
+    var msj_preguntas_EPA = await controlador.funciones.cargar_preguntas_EPA();
+    var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
 
   var local_function = {
     si_autenticado : async function()
@@ -133,8 +127,8 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("pregunta_rut"+conversationID);
       localStorage.removeItem("valida_vigencia"+conversationID);
       localStorage.removeItem("intento"+conversationID);
-      localStorage.removeItem("preguntas_EPA_"+conversationID);
-      localStorage.removeItem("guardar_EPA_"+conversationID);
+      localStorage.removeItem("preguntas_EPA_"+user.id);
+      localStorage.removeItem("guardar_EPA_"+user.id);
     }
   }
 
@@ -158,25 +152,25 @@ router.post('/message', async (req, res) => {
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
                
-                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+conversationID));
+                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+user.id));
                   
-                if(localStorage.getItem("preguntas_EPA_"+conversationID) == null)
+                if(localStorage.getItem("preguntas_EPA_"+user.id) == null)
                 {                  
                   resultado.action = msj_preguntas_EPA.action;
                   resultado.messages.push(msj_preguntas_EPA.messages[1]);
 
-                  localStorage.setItem("preguntas_EPA_"+conversationID, mensaje);
-                  localStorage.setItem("guardar_EPA_"+conversationID, "true");
+                  localStorage.setItem("preguntas_EPA_"+user.id, mensaje);
+                  localStorage.setItem("guardar_EPA_"+user.id, "true");
                 }
-                else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
+                else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
                 {
-                  console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+conversationID));
+                  console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+user.id));
 
                   resultado.action = msj_fin_EPA.action;
                   resultado.messages.push(msj_fin_EPA.messages[0]);
 
                   var rest_EPA = {
-                    "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                    "pregunta_1" : localStorage.getItem("preguntas_EPA_"+user.id),
                     "pregunta_2" : mensaje,
                     "horario" : horarios.status,
                     "id" : user.id,
@@ -185,19 +179,19 @@ router.post('/message', async (req, res) => {
                   }
 
                   await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-                  await controlador.funciones.clearClientTimeOut(user.id);
+                  await controlador.configuraciones.clearClientTimeOut(user.id);
                   await local_function.remove_localStorage();
                 }
               }
-              else if(localStorage.getItem("guardar_EPA_"+conversationID) == "true")
+              else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
               {
-                console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+conversationID));
+                console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+user.id));
                 
                 resultado.action = msj_fin_EPA.action;
                 resultado.messages.push(msj_fin_EPA.messages[0]);
 
                 var rest_EPA = {
-                  "pregunta_1" : localStorage.getItem("preguntas_EPA_"+conversationID),
+                  "pregunta_1" : localStorage.getItem("preguntas_EPA_"+user.id),
                   "pregunta_2" : mensaje,
                   "horario" : horarios.status,
                   "id" : user.id,
@@ -206,7 +200,7 @@ router.post('/message', async (req, res) => {
                 }
 
                 await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-                await controlador.funciones.clearClientTimeOut(user.id);
+                await controlador.configuraciones.clearClientTimeOut(user.id, conversationID);
                 await local_function.remove_localStorage();
               }
               else if(horarios.status)
@@ -322,6 +316,7 @@ router.post('/message', async (req, res) => {
                       {
                         if(axios_CEDU.result == "10000" || axios_CEDU.result == "10006")
                         {
+                          console.log("");
                           await local_function.si_autenticado();
 
                           localStorage.setItem("pregunta_rut"+conversationID, ["transferir",true]);
@@ -345,7 +340,7 @@ router.post('/message', async (req, res) => {
 
                           console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
 
-                          if((axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 1 )
+                          if((/*axios_CEDU.result == "10003" ||*/ axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 1 )
                           {                            
                             resultado.action = msj_aut_erroneo.action;
 
@@ -356,6 +351,24 @@ router.post('/message', async (req, res) => {
 
                             localStorage.setItem("intento"+conversationID, num_intentos);
                             localStorage.setItem("pregunta_rut"+conversationID, ["intentar", true])
+                          }
+                          else if(parseInt(num_intentos) >= 2)// cambiar valor a  no autenticado en el contexto
+                          {
+                            await local_function.si_autenticado();
+
+                            var rest_int = {
+                              "id" : user.id,                                    
+                              "name" : user.name,
+                              "intento" : true,
+                              "channel" : context.channel
+                            }
+
+                            await controlador.funciones.registrar_intentos_clientes(rest_int);
+
+                            localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
+
+                            /*await local_function.no_autenticado();
+                            await local_function.remove_localStorage();*/
                           }
                           else // cambiar valor a  no autenticado en el contexto
                           {
@@ -388,6 +401,7 @@ router.post('/message', async (req, res) => {
 
                   if(pregunta_rut[0] === "transferir" && pregunta_rut[1] == "true")
                   {
+                    console.log(" [BCI] :: [transferir] :: [TRUE]");
                     resultado.action = msj_aut_exitosa.action;
                     resultado.action.saveHistory = true;
                     resultado.messages.push(msj_aut_exitosa.messages[1]);
@@ -396,7 +410,8 @@ router.post('/message', async (req, res) => {
                   }
 
                   if(pregunta_rut[0] === "transferir" && pregunta_rut[1] == "NOAUT")
-                  {                    
+                  {
+                    console.log(" [BCI] :: [transferir] :: [NOAUT]");                   
                     resultado.action = msj_aut_exitosa.action;
                     resultado.action.saveHistory = true;
                     resultado.messages.push(msj_aut_exitosa.messages[1]);
@@ -427,6 +442,15 @@ router.post('/message', async (req, res) => {
               {
                 resultado.action = horarios.action;
                 resultado.messages = horarios.messages;
+
+                var rest_hr = {
+                  "id" : user.id,                                    
+                  "name" : user.name,
+                  "horario" : horarios.status,
+                  "channel" : context.channel
+                }
+
+                await controlador.funciones.registrar_horarios_clientes(rest_hr);
                 await local_function.remove_localStorage();             
               }
               console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");

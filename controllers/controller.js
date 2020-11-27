@@ -5,6 +5,8 @@ const Horarios = require('../models/Horarios');
 const BotMensajes = require('../models/BotMensajes.js');
 const Config = require('../models/Configuracion');
 const Reportes = require('../models/Reporte');
+const Horarios_clientes = require('../models/Horarios_clientes');
+const Intentos_clientes = require('../models/Intentos_clientes');
 const jquery = require('jquery');
 const moment = require('moment');
 const axios = require('axios');
@@ -66,7 +68,28 @@ var configuraciones = {
 	    }
 
 	    return config;	
-    }    
+    },
+    clearClientTimeOut : async function(keyTimeout)
+    {
+    	console.log("[clearClientTimeOut] [EPAEClear] [ID Cliente] :: " + keyTimeout);
+
+    	if(clientTimeoutControl && Object.keys(clientTimeoutControl).length > 0)
+    	{
+    		console.log("[clearClientTimeOut] [EPAEClear] [Existe llave] :: " + clientTimeoutControl.hasOwnProperty(keyTimeout));
+
+    		if(clientTimeoutControl.hasOwnProperty(keyTimeout))
+    		{
+    			console.log("[clearClientTimeOut] [EPAEClear] [Se detiene el timer y se elimina el objeto] :: " + keyTimeout);
+    			
+    			clearTimeout(clientTimeoutControl[keyTimeout].timeOut);
+
+    			localStorage.removeItem("preguntas_EPA_"+keyTimeout);
+      			localStorage.removeItem("guardar_EPA_"+keyTimeout);
+
+    			delete clientTimeoutControl[keyTimeout];
+    		}
+    	}
+    }   
 };
 
 var funciones = {	
@@ -501,35 +524,59 @@ var funciones = {
 	        axios(options).then(function (response)
 			{
 				console.log("[startClientTimeOut] [EPAOK] [status] :: " + response.data.status + " :: [EPAMenssage] :: " + response.data.message);
-				this.clearClientTimeOut(e);
+				configuraciones.clearClientTimeOut(e);
 			})
 			.catch(function (error)
 			{
 				console.log("[startClientTimeOut] [EPAERROR] [status] :: ", error);
-				this.clearClientTimeOut(e);
+				configuraciones.clearClientTimeOut(e);
 			});
 
 			console.log("[startClientTimeOut] [EPATimer] [ID Cliente]  :: " + e); 
 		}, tiempo);				
     },
-    clearClientTimeOut : async function(keyTimeout)
-    {
-    	console.log("[clearClientTimeOut] [EPAEClear] [ID Cliente] :: " + keyTimeout);
+    registrar_horarios_clientes: async function(e)
+	{
+		var now = moment();
+    	now = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+		now = moment(now).subtract(6, 'hours');
+  		now = moment(now).format("YYYY-MM-DD HH:mm:ss");
 
-    	if(clientTimeoutControl && Object.keys(clientTimeoutControl).length > 0)
-    	{
-    		console.log("[clearClientTimeOut] [EPAEClear] [Existe llave] :: " + clientTimeoutControl.hasOwnProperty(keyTimeout));
+    	console.log("[Controller] :: [Horarios_clientes] :: " + now);
 
-    		if(clientTimeoutControl.hasOwnProperty(keyTimeout))
-    		{
-    			console.log("[clearClientTimeOut] [EPAEClear] [Se detiene el timer y se elimina el objeto] :: " + keyTimeout);
-    			
-    			clearTimeout(clientTimeoutControl[keyTimeout].timeOut);
+		const h_clientes = new Horarios_clientes(
+	    {
+	    	id: e.id,
+		    usuario: e.name,
+		    horario: e.horario,
+			channel: e.channel,
+		    fecha: now
+	    });
 
-    			delete clientTimeoutControl[keyTimeout];
-    		}
-    	}
-    }
+	    const result = await h_clientes.save();
+
+	    console.log("[Controller] :: [Horarios_clientes] :: " +  result);
+    },
+    registrar_intentos_clientes: async function(e)
+	{
+		var now = moment();
+    	now = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+		now = moment(now).subtract(6, 'hours');
+  		now = moment(now).format("YYYY-MM-DD HH:mm:ss");
+
+		const i_clientes = new Intentos_clientes(
+	    {
+	    	id: e.id,
+		    usuario: e.name,
+		    intento: e.intento,
+			channel: e.channel,
+		    fecha: now
+	    });
+
+	    const result = await i_clientes.save();
+
+	    console.log("[Controller] :: [Intentos_clientes] :: " +  result.status);
+    },
 }
 
 exports.funciones = funciones;
