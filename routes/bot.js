@@ -310,11 +310,14 @@ router.post('/message', async (req, res) => {
                     {
                       var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
-                      var axios_CEDU = await controlador.funciones.preguntas_sinacofi_CEDU(respuesta_rut, mensaje);
-                      console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
+                      //var axios_CEDU = await controlador.funciones.preguntas_sinacofi_CEDU(respuesta_rut, mensaje);
+                      var axios_CEDU = await controlador.funciones.validar_cliente_solem(respuesta_rut, mensaje);
+                      
+                      console.log("Resultado de CEDU :::::::: code :: " + axios_CEDU.code + " :: status :: " + axios_CEDU.status);
+
                       if(axios_CEDU.status)
                       {
-                        if(axios_CEDU.result == "10000" || axios_CEDU.result == "10006")
+                        if(axios_CEDU.code == 200 || axios_CEDU.code == 409)
                         {
                           console.log("");
                           await local_function.si_autenticado();
@@ -338,9 +341,9 @@ router.post('/message', async (req, res) => {
 
                           console.log("Numero de intentos :::::::: " + num_intentos);
 
-                          console.log("Resultado de CEDU :::::::: " + axios_CEDU.result);
+                          console.log("Resultado de CEDU :::::::: " + axios_CEDU.code);
 
-                          if((/*axios_CEDU.result == "10003" ||*/ axios_CEDU.result == "10001" || axios_CEDU.result == "10005" || axios_CEDU.result == "10008") &&  parseInt(num_intentos) <= 1 )
+                          if(axios_CEDU.code == 406 &&  parseInt(num_intentos) <= 1 )
                           {                            
                             resultado.action = msj_aut_erroneo.action;
 
@@ -666,6 +669,18 @@ router.post('/terminateConversation', async (req, res) => {
   }
 
   res.status(200).json(resultado);
+});
+
+router.post('/test', async (req, res) => {
+
+  var rut = req.body.rut;
+  var numSerie = req.body.numSerie;
+  
+  var validar_cliente_solem = await controlador.funciones.validar_cliente_solem(rut,numSerie);
+  
+  var respuesta = validar_cliente_solem;
+
+  res.status(200).send(respuesta);
 });
 
 

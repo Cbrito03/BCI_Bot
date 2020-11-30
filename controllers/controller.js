@@ -27,8 +27,15 @@ var config =
 	url_update_vigencia : "",
 	authorization : '',
 	url_EPA : "",
-	timer_EPA : ""
+	timer_EPA : "",
+	url_solem : "",
+	cliente_solem : "",
+	token_session : ""
 }
+
+var token = {
+	"session" : ""
+};
 
 var configuraciones = {
 	get_config : async function()
@@ -64,7 +71,16 @@ var configuraciones = {
 					break;
 					case 'Token_Autorización':
 						config.authorization = result[i].valor;
-					break;				
+					break;
+					case 'url_solem':
+						config.url_solem= result[i].valor;
+					break;
+					case 'cliente_solem':
+						config.cliente_solem= result[i].valor;
+					break;
+					case 'token_session':
+						config.token_session= result[i].valor;
+					break;			
 				}
 	    	}
 	    }
@@ -578,6 +594,140 @@ var funciones = {
 	    const result = await i_clientes.save();
 
 	    console.log("[Controller] :: [Intentos_clientes] :: " +  result.status);
+    },
+    validar_cliente_solem: async function(rut, numSerie)
+	{
+		var now = moment();
+    	now = now.tz("America/Santiago").format("yyyy-MM-DDTHH:mm:ss.SSS");
+
+    	var get_config = await configuraciones.get_config();
+		
+		var cliente = JSON.parse(get_config.cliente_solem.replace(/'/g,'"'));
+
+		var obj = {};	
+
+		var data = {
+			"code": "USER",
+		    "type": "START",
+		    "subtype": "SESSION",
+		    "createdAt": now.toString(),
+		    "client": cliente
+		   /* "client": {
+		        'companyId': cliente.companyId,
+		        'username': cliente.username,
+		        'password': cliente.password
+		    }*/
+		};
+
+		const https = require('https');
+
+		const agent = new https.Agent({
+		    rejectUnauthorized: false,
+		});
+
+		var options = {
+        	method : 'POST',
+        	strictSSL: false,
+        	 httpsAgent: agent,
+			url : config.url_solem + "session",
+			headers : { 
+				'Content-Type' : 'application/json',
+				'X-Auth-Token' : get_config.token_session
+			},
+			data: data
+        };
+
+        var result_axios = {};
+
+        await axios(options).then(function (response)
+        {
+		  	result_axios = response;	        
+		}).catch(function (error)
+		{
+        	console.log("[controller] :: [funciones] :: [validar_cliente_solem] : [catch] :: [error] :: ", error);
+        	
+        	obj.code = error.response.data.code;	
+		});
+
+		if(result_axios.status == 200)
+        {
+        	if(result_axios.data.status.status.code == 200 && result_axios.data.status.status.message == "OK")
+        	{
+				var data = {
+					"code": "PERSON",
+				    "type": "GET",
+				    "subtype": "KBA",
+				    "createdAt": result_axios.data.createdAt,
+				   	"client": {
+				   		'operationId': 1234567,
+				        'companyId': result_axios.data.client.companyId,
+				        'username': result_axios.data.client.username				        
+				    },
+				    "data": {
+				        "digitalIdentity": {
+				            "identityDocuments": [{
+				                    "countryCode": "CL",
+				                    "type": "ID",
+				                    "personalNumber": rut,
+				                    "number": numSerie
+				            }]
+				        },
+				        "authenticationFactors": [{
+				            "type":"KBA",
+				            "subtype":"KBA",
+				            "questionType": "DYNAMIC"
+				        }]
+				    }
+				};
+
+				var options = {
+		        	method : 'POST',
+		        	strictSSL: false,
+		        	 httpsAgent: agent,
+					url : config.url_solem + "kba/get",
+					headers : { 
+						'Content-Type' : 'application/json',
+						'X-Auth-Token' : get_config.token_session,
+						'X-Session-Token' : result_axios.data.client.token
+					},
+					data: data
+		        };
+
+		        await axios(options).then(function (response)
+		        {
+		        	console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then] :: [RUT] ::", rut, " :: [NUM] ::", numSerie);
+		        	console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then] :: [response.data.status] :: ", response.data.status);
+
+		        	if(response.status == 200)
+					{
+						obj.code = response.data.status.status.code;
+						obj.status = true;
+					}
+					else
+					{
+						obj.code = 400;
+						obj.status = false;
+						console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then ELSE] :: [response] :: ", response);
+					}
+				}).catch(function (error)
+				{
+					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
+		        	obj.code = error.response.data.code;
+				});
+		    }
+		    else
+		    {
+		    	obj.code = 400;
+		    	obj.status = false;
+		    }
+        }
+        else
+        {
+        	obj.code = 400;
+        	obj.status = false;
+        }
+
+	    return obj;
     },
 }
 
