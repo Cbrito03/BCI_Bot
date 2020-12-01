@@ -613,11 +613,6 @@ var funciones = {
 		    "subtype": "SESSION",
 		    "createdAt": now.toString(),
 		    "client": cliente
-		   /* "client": {
-		        'companyId': cliente.companyId,
-		        'username': cliente.username,
-		        'password': cliente.password
-		    }*/
 		};
 
 		const https = require('https');
