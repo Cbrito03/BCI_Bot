@@ -149,7 +149,7 @@ router.post('/message', async (req, res) => {
 
               console.log("[BCI] :: [message] :: [lastMessageFrom] :: " + context.lastMessageFrom + " :: [Diferecnia] :: " + diff);          
 
-              if(context.lastMessageFrom == "NOTIFICATION" && diff < 24)
+              if((context.lastMessageFrom == "NOTIFICATION" && diff < 24) || localStorage.getItem("NOTIFICATION"+user.id) == "NOTIFICATION")
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
                
@@ -183,6 +183,7 @@ router.post('/message', async (req, res) => {
                       resultado.messages.push(msj_preguntas_EPA.messages[1]);
 
                       localStorage.setItem("preguntas_EPA_"+user.id, mensaje);
+                      localStorage.setItem("NOTIFICATION"+user.id, "NOTIFICATION");
                       localStorage.setItem("guardar_EPA_"+user.id, "true");
                     }
                   }
@@ -201,6 +202,7 @@ router.post('/message', async (req, res) => {
                     resultado.messages.push(msj_preguntas_EPA.messages[0]);
 
                     localStorage.setItem("intento_EPA"+conversationID, num_intentos_EPA);
+                    localStorage.setItem("NOTIFICATION"+user.id, "NOTIFICATION");
                   }
 
                 }
