@@ -130,6 +130,7 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("preguntas_EPA_"+user.id);
       localStorage.removeItem("guardar_EPA_"+user.id);
       localStorage.removeItem("intento_EPA"+conversationID);
+      localStorage.removeItem("NOTIFICATION"+user.id)
     }
   }
 
