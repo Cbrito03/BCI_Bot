@@ -129,6 +129,7 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("intento"+conversationID);
       localStorage.removeItem("preguntas_EPA_"+user.id);
       localStorage.removeItem("guardar_EPA_"+user.id);
+      localStorage.removeItem("intento_EPA"+conversationID);
     }
   }
 
@@ -152,15 +153,56 @@ router.post('/message', async (req, res) => {
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
                
-                console.log("[EPA] :: pregunta_EPA :: " + localStorage.getItem("preguntas_EPA_"+user.id));
-                  
-                if(localStorage.getItem("preguntas_EPA_"+user.id) == null)
-                {                  
-                  resultado.action = msj_preguntas_EPA.action;
-                  resultado.messages.push(msj_preguntas_EPA.messages[1]);
+                console.log("[EPA] :: [pregunta_EPA] :: " + localStorage.getItem("preguntas_EPA_"+user.id));
 
-                  localStorage.setItem("preguntas_EPA_"+user.id, mensaje);
-                  localStorage.setItem("guardar_EPA_"+user.id, "true");
+                var bandera_res1 = await controlador.funciones.valida_respuesta_EPA(mensaje);
+
+                console.log("[EPA] :: [Respuesta_EPA] :: ", bandera_res1);
+
+                var num_intentos_EPA = localStorage.getItem("intento_EPA"+conversationID);
+
+                if(localStorage.getItem("preguntas_EPA_"+user.id) == null)
+                {
+
+                  if(num_intentos_EPA == null)
+                  {
+                    num_intentos_EPA = 0;
+                  }
+
+                  num_intentos_EPA = parseInt(num_intentos_EPA) + 1;
+
+                  console.log("[EPA] :: [num_intentos_EPA] :: ", num_intentos_EPA);
+                      
+                  if(bandera_res1 && num_intentos_EPA <= 2 )
+                  {
+                    console.log("[EPA] :: [Respuesta_EPA] :: [Entro al IF] ", bandera_res1);
+
+                    if(localStorage.getItem("preguntas_EPA_"+user.id) == null)
+                    {                  
+                      resultado.action = msj_preguntas_EPA.action;
+                      resultado.messages.push(msj_preguntas_EPA.messages[1]);
+
+                      localStorage.setItem("preguntas_EPA_"+user.id, mensaje);
+                      localStorage.setItem("guardar_EPA_"+user.id, "true");
+                    }
+                  }
+                  else if(num_intentos_EPA >= 2 )
+                  {
+                    resultado.action = msj_fin_EPA.action;
+                    resultado.messages.push(msj_fin_EPA.messages[0]);
+
+                    await controlador.configuraciones.clearClientTimeOut(user.id, conversationID);
+                    await local_function.remove_localStorage();
+                    
+                  }
+                  else if(!bandera_res1 && num_intentos_EPA <= 1 )
+                  {
+                    resultado.action = msj_preguntas_EPA.action;
+                    resultado.messages.push(msj_preguntas_EPA.messages[0]);
+
+                    localStorage.setItem("intento_EPA"+conversationID, num_intentos_EPA);
+                  }
+
                 }
                 else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
                 {
@@ -183,7 +225,7 @@ router.post('/message', async (req, res) => {
                   await local_function.remove_localStorage();
                 }
               }
-              else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
+              /*else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
               {
                 console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+user.id));
                 
@@ -200,9 +242,9 @@ router.post('/message', async (req, res) => {
                 }
 
                 await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-                await controlador.configuraciones.clearClientTimeOut(user.id, conversationID);
+                await controlador.configuraciones.clearClientTimeOut(user.id);
                 await local_function.remove_localStorage();
-              }
+              }*/
               else if(horarios.status)
               {
                 var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
@@ -279,7 +321,7 @@ router.post('/message', async (req, res) => {
                       // NO esta autenticado y el rut si es igual
                       if(vig == false && rt_vig == mensaje) 
                       {                         
-                        var  respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
+                        var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
                         if(respuesta_rut == null)
                         {
@@ -522,23 +564,19 @@ router.post('/message', async (req, res) => {
 router.post('/terminateConversation', async (req, res) => {
   var resultado = {};
 
-  console.log("[terminateConversation] [EPA] :: ");
+  console.log("[terminateConversation] :: [EPA] :: [Se envio EPA al Cliente]");
 
   var persona = req.body.persona;
   var ejecutivo = req.body.ejecutivo;
   var conversacion = req.body.conversacion;
 
   var msj_inicio_EPA = await controlador.funciones.cargar_inicio_EPA();
+    var msj_pregunta_1_EPA = await controlador.funciones.cargar_preguntas_EPA();
+    var msj_inicio_EPA = await controlador.funciones.cargar_inicio_EPA();
+    var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
+    var config = await controlador.configuraciones.get_config();
 
-  var msj_pregunta_1_EPA = await controlador.funciones.cargar_preguntas_EPA();
-
-  var msj_inicio_EPA = await controlador.funciones.cargar_inicio_EPA();
-
-  var msj_fin_EPA = await controlador.funciones.cargar_fin_EPA();
-
-  var config = await controlador.configuraciones.get_config();
-
-  console.log("EPA config :: " + config.url_EPA);
+  console.log("[terminateConversation] :: [EPA] :: [config] :: " + config.url_EPA);
 
   if(persona !== '' && typeof persona !== "undefined") 
   {
@@ -548,18 +586,18 @@ router.post('/terminateConversation', async (req, res) => {
       {
         var bandera_label = true;
 
-        console.log("[terminateConversation] [EPADatos]:: [userId] ::" + conversacion.userId  + " :: [orgId] :: " + conversacion.orgId + " :: [telefono] ::" + persona.telefono);
+        console.log("[terminateConversation] :: [EPA] :: [Datos]:: [userId] ::" + conversacion.userId  + " :: [orgId] :: " + conversacion.orgId + " :: [telefono] ::" + persona.telefono);
 
         if(Array.isArray(conversacion.etiquetas))
         {
-          console.log("[terminateConversation] [EPAarray]:: " + true);
+          console.log("[terminateConversation] :: [EPA] :: [array] :: " + true);
           for (var i = 0; i < conversacion.etiquetas.length; i++)
           {
-            console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
+            console.log("[terminateConversation] :: [EPA] :: [array FOR]:: " + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
             
             if(conversacion.etiquetas[i] == "automaticClose")
             {
-              console.log("[terminateConversation] [EPAarray FOR]:: " + true + " :: [Etiqueta] ::" + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
+              console.log("[terminateConversation] :: [EPA] :: [array FOR IF] :: " + true + " :: [Etiqueta] ::" + true + " :: [FOR] :: [Etiqueta - "+i+"] :: " + conversacion.etiquetas[i] );
               bandera_label = false;
             }
           }
@@ -595,14 +633,14 @@ router.post('/terminateConversation', async (req, res) => {
             "botNotification": true
           };          
 
-          console.log("[terminateConversation] [EPADatos] :: [data channel] :: " + data.channel);
-            console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
-            console.log("[terminateConversation] [EPADatos] :: [data orgID] :: " + data.orgID);
-            console.log("[terminateConversation] [EPADatos] :: [data data Text :: " + data.data.text);
-            console.log("[terminateConversation] [EPADatos] :: [data userID] :: " + data.userID);
-            console.log("[terminateConversation] [EPADatos] :: [config.url_EPA] :: " + config.url_EPA);
-            console.log("[terminateConversation] [EPADatos] :: [config.authorization] :: " + config.authorization);
-            console.log("[terminateConversation] [EPADatos] :: [persona.telefono] :: " + persona.telefono);
+          console.log("[terminateConversation] :: [EPA] :: [Datos] :: [data channel] :: " + data.channel);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [data userID] :: " + data.userID);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [data orgID] :: " + data.orgID);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [data data Text :: " + data.data.text);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [data recipients] :: " + persona.telefono);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [config.url_EPA] :: " + config.url_EPA);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [config.authorization] :: " + config.authorization);
+            console.log("[terminateConversation] :: [EPA] :: [Datos] :: [persona.telefono] :: " + persona.telefono);
           
           var options = {
             method : 'POST',
@@ -632,14 +670,14 @@ router.post('/terminateConversation', async (req, res) => {
               resultado.idCanal = response.data.idCanal;
             }
 
-            console.log("[terminateConversation] [EPAOK] [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message + " :: [EPAIdCanal] :: " + resultado.idCanal);
+            console.log("[terminateConversation] :: [EPA] :: [OK] :: [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message + " :: [EPAIdCanal] :: " + resultado.idCanal);
           })
           .catch(function (error)
           {
             resultado.status = error.response.data.status;
             resultado.message = error.response.data.message;
 
-            console.log("[terminateConversation] [EPAERROR] [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
+            console.log("[terminateConversation] :: [EPA] :: [ERROR] :: [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
           });
         }
         else
@@ -647,7 +685,7 @@ router.post('/terminateConversation', async (req, res) => {
           resultado.status = "OK";
           resultado.message = "Contenia la etiqueta automaticClose";
 
-          console.log("[terminateConversation] [bandera_label]" + bandera_label + " :: [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
+          console.log("[terminateConversation] :: [EPA] :: [bandera_label]" + bandera_label + " :: [status]:: " + resultado.status + " :: [EPAMenssage] :: " + resultado.message);
         }
       }
       else
@@ -682,7 +720,6 @@ router.post('/test', async (req, res) => {
 
   res.status(200).send(respuesta);
 });
-
 
 router.get('/test', async (req, res) => {
   var now = moment();

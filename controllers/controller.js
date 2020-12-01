@@ -285,12 +285,13 @@ var funciones = {
 			case 'rut': // RUT cliente
 				if(valor != "")
 				{
-					if (/^[0-9A-Za-z]+$/.test(valor)) 
-					{ 
+					if (/^[0-9kK]+$/.test(valor)) 
+					{
+						console.log("[validación_campos_rut] :: " + true);
 					    result = true;
 					}
 
-					console.log('Entro a RUT ', result);
+					console.log('[validación_campos_rut] :: [Entro a RUT] :: ', result);
 				}
 			break;
 			case 'numSerie': // número de serie
@@ -729,6 +730,26 @@ var funciones = {
 
 	    return obj;
     },
+    valida_respuesta_EPA: async function(valor)
+    {
+    	var result = false;    	
+
+    	valor = valor.trim();
+
+    	console.log("[controller] :: [valida_respuesta_EPA] :: " + valor)
+
+		if(valor != "")
+		{
+			if (/^[1-5]+$/.test(valor)) 
+			{
+				console.log("[controller] :: [valida_respuesta_EPA] :: " + true);
+			    result = true;
+			}
+			console.log('[controller] :: [valida_respuesta_EPA] :: ', result);
+		}
+
+    	return result;
+    }
 }
 
 exports.funciones = funciones;
