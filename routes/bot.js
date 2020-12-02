@@ -294,7 +294,7 @@ router.post('/message', async (req, res) => {
                       console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: "+ rt_vig +" :: == :: "+ mensaje);
 
                       // si esta autenticado el rut SI es igual
-                      if(vig == true && rt_vig == mensaje)
+                      if(vig == true && rt_vig.toLowerCase() == mensaje.toLowerCase())
                       {
                         await local_function.si_autenticado();                        
 
@@ -303,7 +303,7 @@ router.post('/message', async (req, res) => {
                       }                      
                       
                       // No existe  o  NO esta autenticado y el rut no es igual
-                      if(vig === 99 || vig == false && rt_vig != mensaje)
+                      if(vig === 99 || vig == false && rt_vig.toLowerCase() != mensaje.toLowerCase())
                       { 
                         await local_function.no_cliente();
 
@@ -311,7 +311,7 @@ router.post('/message', async (req, res) => {
                       }
 
                       //si esta autenticado pero el rut no es igual
-                      if(vig == true && rt_vig != mensaje)
+                      if(vig == true && rt_vig.toLowerCase() != mensaje.toLowerCase())
                       {
                         await local_function.no_cliente();
 
@@ -322,7 +322,7 @@ router.post('/message', async (req, res) => {
                       }   
                       
                       // NO esta autenticado y el rut si es igual
-                      if(vig == false && rt_vig == mensaje) 
+                      if(vig == false && rt_vig.toLowerCase() == mensaje.toLowerCase()) 
                       {                         
                         var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
