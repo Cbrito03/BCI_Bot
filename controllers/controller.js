@@ -415,7 +415,7 @@ var funciones = {
 
     	var resultado = { "authValidity" : false };
 
-    	var data = { "rut": num };		
+    	var data = { "rut": num.toLowerCase() };		
 
 		var options = {
         	method : 'POST',
