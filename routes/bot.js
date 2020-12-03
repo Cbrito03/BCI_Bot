@@ -51,13 +51,15 @@ router.post('/message', async (req, res) => {
   console.log("lastMessageTime :: " + context.lastMessageTime);
 
   var now = moment();
-  var fechaStamp = moment(context.lastInteractionFinishTime).subtract(3, 'hours');
-  //var fechaStamp = moment(context.lastMessageTime)/*.subtract(6, 'hours')*/;
+  var fechaStamp = moment(context.lastMessageTime).subtract(3, 'hours');
+  var fechaStamp2 = moment(context.lastInteractionFinishTime).subtract(3, 'hours');
   fechaStamp = moment(fechaStamp).format("YYYY-MM-DD HH:mm:ss");
   var fecha_actual = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
   var fecha2 = moment(fecha_actual, "YYYY-MM-DD HH:mm:ss");
 
-  console.log("fechaStamp :: " + fechaStamp + " :: fecha Actual :: " + fecha_actual);
+  //console.log("lastInteractionFinishTime :: " + fechaStamp + " :: fecha Actual :: " + fecha_actual);
+
+  console.log("lastInteractionFinishTime :: " + fechaStamp2 + ":: lastMessageTime :: "+fechaStamp+" ::fecha Actual :: " + fecha_actual);
 
   var diff = fecha2.diff(fechaStamp, 'h'); 
   console.log("diff :: " + diff + " Tipo " + typeof diff);
@@ -151,7 +153,7 @@ router.post('/message', async (req, res) => {
 
               console.log("[BCI] :: [message] :: [lastMessageFrom] :: " + context.lastMessageFrom + " :: [Diferecnia] :: " + diff);          
 
-              if((context.lastMessageFrom == "NOTIFICATION" && diff < 24) || localStorage.getItem("NOTIFICATION"+user.id) == "NOTIFICATION")
+              if((context.lastMessageFrom == "NOTIFICATION" && diff < 24) || (localStorage.getItem("NOTIFICATION"+user.id) == "NOTIFICATION" && diff < 24))
               {
                 // Aplico Flujo de la EPA (Preguntas que tengo que guardar en una colección)
                
@@ -231,6 +233,11 @@ router.post('/message', async (req, res) => {
               }
               else if(horarios.status)
               {
+                if((context.lastMessageFrom == "NOTIFICATION" && diff >= 24) || (localStorage.getItem("NOTIFICATION"+user.id) == "NOTIFICATION" && diff >= 24))
+                {
+                  await controlador.configuraciones.clearClientTimeOut(user.id);
+                  await local_function.remove_localStorage();
+                }
                 /*var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
 
                 localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
