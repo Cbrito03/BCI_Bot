@@ -287,7 +287,11 @@ router.post('/message', async (req, res) => {
                       console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: == :: "+ mensaje);
 
                       // si esta autenticado el rut SI es igual
+<<<<<<< HEAD
                       if(vig == true /*&& rt_vig.toLowerCase() == mensaje.toLowerCase()*/)
+=======
+                      if(vig == true && rt_vig.toLowerCase() == mensaje.toLowerCase())
+>>>>>>> 58a773e09013d525cdfd77ccc1ba59179104afa7
                       {
                         await local_function.si_autenticado();                        
 
@@ -296,7 +300,11 @@ router.post('/message', async (req, res) => {
                       }                      
                       
                       // No existe  o  NO esta autenticado y el rut no es igual
+<<<<<<< HEAD
                       if(vig === 99 /*|| vig == false && rt_vig.toLowerCase() != mensaje.toLowerCase()*/)
+=======
+                      if(vig === 99 || vig == false && rt_vig.toLowerCase() != mensaje.toLowerCase())
+>>>>>>> 58a773e09013d525cdfd77ccc1ba59179104afa7
                       { 
                         await local_function.no_cliente();
 
@@ -304,7 +312,11 @@ router.post('/message', async (req, res) => {
                       }
 
                       //si esta autenticado pero el rut no es igual
+<<<<<<< HEAD
                       /*if(vig == true && rt_vig.toLowerCase() != mensaje.toLowerCase())
+=======
+                      if(vig == true && rt_vig.toLowerCase() != mensaje.toLowerCase())
+>>>>>>> 58a773e09013d525cdfd77ccc1ba59179104afa7
                       {
                         await local_function.no_cliente();
 
@@ -315,7 +327,11 @@ router.post('/message', async (req, res) => {
                       }*/   
                       
                       // NO esta autenticado y el rut si es igual
+<<<<<<< HEAD
                       if(vig == false /*&& rt_vig.toLowerCase() == mensaje.toLowerCase()*/) 
+=======
+                      if(vig == false && rt_vig.toLowerCase() == mensaje.toLowerCase()) 
+>>>>>>> 58a773e09013d525cdfd77ccc1ba59179104afa7
                       {                         
                         var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
