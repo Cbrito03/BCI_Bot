@@ -126,6 +126,7 @@ router.post('/message', async (req, res) => {
       localStorage.removeItem("bot_bci_"+conversationID);
       localStorage.removeItem("pregunta_rut"+conversationID);
       localStorage.removeItem("valida_vigencia"+conversationID);
+      localStorage.removeItem("valida_vigencia_phone"+conversationID)
       localStorage.removeItem("intento"+conversationID);
       localStorage.removeItem("preguntas_EPA_"+user.id);
       localStorage.removeItem("guardar_EPA_"+user.id);
@@ -228,33 +229,13 @@ router.post('/message', async (req, res) => {
                   await local_function.remove_localStorage();
                 }
               }
-              /*else if(localStorage.getItem("guardar_EPA_"+user.id) == "true")
-              {
-                console.log("[EPA] :: Guardar_EPA :: " + localStorage.getItem("guardar_EPA_"+user.id));
-                
-                resultado.action = msj_fin_EPA.action;
-                resultado.messages.push(msj_fin_EPA.messages[0]);
-
-                var rest_EPA = {
-                  "pregunta_1" : localStorage.getItem("preguntas_EPA_"+user.id),
-                  "pregunta_2" : mensaje,
-                  "horario" : horarios.status,
-                  "id" : user.id,
-                  "name" : user.name,
-                  "channel" : context.channel
-                }
-
-                await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
-                await controlador.configuraciones.clearClientTimeOut(user.id);
-                await local_function.remove_localStorage();
-              }*/
               else if(horarios.status)
               {
-                var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
+                /*var valida_vigencia = await controlador.funciones.valida_vigencia(user.id);
 
                 localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
 
-                console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);
+                console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);*/
 
                 if(localStorage.getItem("bot_bci_"+conversationID) == null )
                 {
@@ -284,17 +265,29 @@ router.post('/message', async (req, res) => {
                   {
                     var bandera_vali_rut = await controlador.funciones.validación_campos_rut(pregunta_rut[0], mensaje);
                     
-                    var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID);                    
+                    /*var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID);*/                  
 
                     if(bandera_vali_rut)
                     {
-                      var vig = valida_vigencia.authValidity;
-                      var rt_vig = rut_vigencia.replace(/-/g,"");
+                      var str1 = mensaje.substr(0, 8) + "-";
+                      var str2 = mensaje.substr(8, 9);
 
-                      console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: "+ rt_vig +" :: == :: "+ mensaje);
+                      var mensaje_rut = str1 + str2;
+
+                      var valida_vigencia = await controlador.funciones.valida_vigencia(mensaje_rut);
+
+                      localStorage.setItem("valida_vigencia"+conversationID, valida_vigencia.id);
+                      localStorage.setItem("valida_vigencia_phone"+conversationID, valida_vigencia.phone);
+
+                      console.log("[valida_vigencia] :: " + valida_vigencia.authValidity);
+
+                      var vig = valida_vigencia.authValidity;
+                      //var rt_vig = rut_vigencia.replace(/-/g,"");
+
+                      console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: == :: "+ mensaje);
 
                       // si esta autenticado el rut SI es igual
-                      if(vig == true && rt_vig == mensaje)
+                      if(vig == true /*&& rt_vig.toLowerCase() == mensaje.toLowerCase()*/)
                       {
                         await local_function.si_autenticado();                        
 
@@ -303,7 +296,7 @@ router.post('/message', async (req, res) => {
                       }                      
                       
                       // No existe  o  NO esta autenticado y el rut no es igual
-                      if(vig === 99 || vig == false && rt_vig != mensaje)
+                      if(vig === 99 /*|| vig == false && rt_vig.toLowerCase() != mensaje.toLowerCase()*/)
                       { 
                         await local_function.no_cliente();
 
@@ -311,7 +304,7 @@ router.post('/message', async (req, res) => {
                       }
 
                       //si esta autenticado pero el rut no es igual
-                      if(vig == true && rt_vig != mensaje)
+                      /*if(vig == true && rt_vig.toLowerCase() != mensaje.toLowerCase())
                       {
                         await local_function.no_cliente();
 
@@ -319,10 +312,10 @@ router.post('/message', async (req, res) => {
                         //await local_function.si_autenticado();
 
                         //localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
-                      }   
+                      }*/   
                       
                       // NO esta autenticado y el rut si es igual
-                      if(vig == false && rt_vig == mensaje) 
+                      if(vig == false /*&& rt_vig.toLowerCase() == mensaje.toLowerCase()*/) 
                       {                         
                         var respuesta_rut = localStorage.getItem("respuesta_rut"+conversationID);
 
@@ -364,14 +357,18 @@ router.post('/message', async (req, res) => {
                       {
                         if(axios_CEDU.code == 200 || axios_CEDU.code == 409)
                         {
-                          console.log("");
                           await local_function.si_autenticado();
 
                           localStorage.setItem("pregunta_rut"+conversationID, ["transferir",true]);
 
                           var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID);
 
-                          var update_vigencia = await controlador.funciones.update_vigencia(user.id, rut_vigencia);
+                          var rut_vigencia =  localStorage.getItem("valida_vigencia"+conversationID); 
+                          var phone_vigencia =  localStorage.getItem("valida_vigencia_phone"+conversationID); 
+
+                          /*var update_vigencia = await controlador.funciones.update_vigencia(user.id, rut_vigencia);*/
+
+                          var update_vigencia = await controlador.funciones.update_vigencia(phone_vigencia, rut_vigencia);
                         }
                         else
                         {

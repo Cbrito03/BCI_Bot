@@ -411,11 +411,11 @@ var funciones = {
     {
     	var get_config = await configuraciones.get_config();
 
-    	console.log("[valida_vigencia] :: [NUM] :: " + num + " - " + typeof num);
+    	console.log("[valida_vigencia] :: [RUT] :: " + num + " - " + typeof num);
 
     	var resultado = { "authValidity" : false };
 
-    	var data = { "phone": num };		
+    	var data = { "rut": num };		
 
 		var options = {
         	method : 'POST',
