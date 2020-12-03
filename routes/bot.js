@@ -284,7 +284,7 @@ router.post('/message', async (req, res) => {
                       var vig = valida_vigencia.authValidity;
                       //var rt_vig = rut_vigencia.replace(/-/g,"");
 
-                      console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT :: == :: "+ mensaje);
+                      console.log("[Cliente ingreso RUT] :: authValidity :: "+ vig +" :: RUT == :: "+ mensaje);
 
                       // si esta autenticado el rut SI es igual
 <<<<<<< HEAD
