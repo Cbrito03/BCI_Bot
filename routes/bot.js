@@ -465,6 +465,7 @@ router.post('/message', async (req, res) => {
                     {
 
                       context.rut = localStorage.getItem("valida_vigencia"+conversationID);
+                      context.phone = localStorage.getItem("valida_vigencia_phone"+conversationID);
                     }
 
                     await local_function.remove_localStorage();                                                             
@@ -484,6 +485,7 @@ router.post('/message', async (req, res) => {
                     {
 
                       context.rut = localStorage.getItem("valida_vigencia"+conversationID);
+                      context.phone = localStorage.getItem("valida_vigencia_phone"+conversationID);
                     }
 
                     await local_function.remove_localStorage();
