@@ -458,6 +458,15 @@ router.post('/message', async (req, res) => {
                     resultado.action.saveHistory = true;
                     resultado.messages.push(msj_aut_exitosa.messages[1]);
                     resultado.additionalInfo.authValidity = true;
+
+                    console.log("Transfer TRUE :: ", resultado.action["type"]);
+
+                    if(localStorage.getItem("valida_vigencia"+conversationID) !== null && resultado.action["type"] == "transfer")
+                    {
+
+                      context.rut = localStorage.getItem("valida_vigencia"+conversationID);
+                    }
+
                     await local_function.remove_localStorage();                                                             
                   }
 
@@ -468,6 +477,15 @@ router.post('/message', async (req, res) => {
                     resultado.action.saveHistory = true;
                     resultado.messages.push(msj_aut_exitosa.messages[1]);
                     resultado.additionalInfo.authValidity = false;
+
+                    console.log("Transfer NOAUT :: ", resultado.action["type"]);
+
+                    if(localStorage.getItem("valida_vigencia"+conversationID) !== null && resultado.action["type"] == "transfer")
+                    {
+
+                      context.rut = localStorage.getItem("valida_vigencia"+conversationID);
+                    }
+
                     await local_function.remove_localStorage();
                   }
 
