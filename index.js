@@ -25,6 +25,7 @@ const horarios = require('./routes/horarios');
 const usuarios = require('./routes/usuarios');
 const msjInicial = require('./routes/msjInicial');
 const config = require('./routes/configuraciones.js');
+const query = require('./routes/querys.js');
 
 const port = process.env.PORT;
 
@@ -44,6 +45,7 @@ app.use(horarios);
 app.use(usuarios);
 app.use(msjInicial);
 app.use(config);
+app.use(query);
 app.use(express.static("web"));
 
 app.listen(port, app, async () => {
