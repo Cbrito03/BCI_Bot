@@ -6,6 +6,10 @@ var reporteSchema = new Schema({
         type: Schema.Types.String,
         required: true
     },
+    conversationId: {
+        type: Schema.Types.String,
+        required: true
+    },
     usuario:{
         type: Schema.Types.String,
         required: true
@@ -24,6 +28,10 @@ var reporteSchema = new Schema({
     },
     respuesta_2:{
         type: Schema.Types.String,
+        required: true
+    },  
+    fecha:{
+        type: Date,
         required: true
     }
 });

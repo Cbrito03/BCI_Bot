@@ -326,14 +326,23 @@ var funciones = {
     },
     registrar_preguntas_EPA: async function(e)
 	{
+		var now = moment();
+    	now = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+		now = moment(now).subtract(6, 'hours');
+  		now = moment(now).format("YYYY-MM-DD HH:mm:ss");
+
+    	console.log("[Controller] :: [registrar_preguntas_EPA] :: " + now);
+    	
 		const reporte = new Reportes(
 	    {
 	    	id: e.id,
+	    	conversationId : e.conversationId
 		    usuario: e.name,
 		    horario: e.horario,
 			channel: e.channel,
 		    respuesta_1: e.pregunta_1,
-		    respuesta_2: e.pregunta_2
+		    respuesta_2: e.pregunta_2,
+		    fecha: now
 	    });
 
 	    const result = await reporte.save();
