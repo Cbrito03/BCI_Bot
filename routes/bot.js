@@ -401,7 +401,7 @@ router.post('/message', async (req, res) => {
 
 											if(/*axios_CEDU.status*/ true)
 											{
-												if(axios_CEDU.code == 200 || axios_CEDU.code == 409 || axios_CEDU.code == 403)
+												if(axios_CEDU.code == 200 || axios_CEDU.code == 409 /*|| axios_CEDU.code == 403*/)
 												{
 													await local_function.si_autenticado();
 
