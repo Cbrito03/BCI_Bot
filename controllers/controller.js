@@ -114,6 +114,7 @@ var configuraciones = {
 
     			localStorage.removeItem("preguntas_EPA_"+keyTimeout);
       			localStorage.removeItem("guardar_EPA_"+keyTimeout);
+      			localStorage.removeItem("NOTIFICATION"+keyTimeout)
 
     			delete clientTimeoutControl[keyTimeout];
     		}
