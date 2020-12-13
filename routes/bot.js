@@ -225,7 +225,7 @@ router.post('/message', async (req, res) => {
 										"pregunta_2" : mensaje,
 										"horario" : horarios.status,
 										"id" : user.id,
-										"conversationId" : conversationID
+										"conversationId" : conversationID,
 										"name" : user.name,
 										"channel" : context.channel
 									}

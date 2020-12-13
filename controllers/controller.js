@@ -332,11 +332,11 @@ var funciones = {
   		now = moment(now).format("YYYY-MM-DD HH:mm:ss");
 
     	console.log("[Controller] :: [registrar_preguntas_EPA] :: " + now);
-    	
+
 		const reporte = new Reportes(
 	    {
 	    	id: e.id,
-	    	conversationId : e.conversationId
+	    	conversationId : e.conversationId,
 		    usuario: e.name,
 		    horario: e.horario,
 			channel: e.channel,
