@@ -9,6 +9,7 @@ const Config = require('../models/Configuracion');
 const Reportes = require('../models/Reporte');
 const Horarios_clientes = require('../models/Horarios_clientes');
 const Intentos_clientes = require('../models/Intentos_clientes');
+const Aut_clientes = require('../models/Aut_clientes');
 const jquery = require('jquery');
 const moment = require('moment');
 const axios = require('axios');
@@ -17,6 +18,8 @@ const async = require('async');
 const xmlParser = require('xml2json');
 
 var clientTimeoutControl = {};
+
+var clientTimeoutControl_Aut = {};
 
 var config = 
 {
@@ -30,7 +33,9 @@ var config =
 	timer_EPA : "",
 	url_solem : "",
 	cliente_solem : "",
-	token_session : ""
+	token_session : "",
+	url_get_persona : "",
+	url_update_persona : ""
 }
 
 var token = {
@@ -58,10 +63,10 @@ var configuraciones = {
 						config.urlSNPV = result[i].valor;
 					break;
 					case 'url_EPA':
-						config.url_EPA= result[i].valor;
+						config.url_EPA = result[i].valor;
 					break;
 					case 'timer_EPA':
-						config.timer_EPA= result[i].valor;
+						config.timer_EPA = result[i].valor;
 					break;
 					case 'Get_Vigencia':
 						config.url_get_vigencia = result[i].valor;
@@ -73,14 +78,20 @@ var configuraciones = {
 						config.authorization = result[i].valor;
 					break;
 					case 'url_solem':
-						config.url_solem= result[i].valor;
+						config.url_solem = result[i].valor;
 					break;
 					case 'cliente_solem':
-						config.cliente_solem= result[i].valor;
+						config.cliente_solem = result[i].valor;
 					break;
 					case 'token_session':
-						config.token_session= result[i].valor;
-					break;			
+						config.token_session = result[i].valor;
+					break;
+					case 'get_persona':
+						config.url_get_persona = result[i].valor;
+					break;
+					case 'update_persona':
+						config.url_update_persona = result[i].valor;
+					break;		
 				}
 	    	}
 	    }
@@ -107,29 +118,50 @@ var configuraciones = {
     			delete clientTimeoutControl[keyTimeout];
     		}
     	}
-    }   
+    },
+    clearClientTimeOut_Aut : async function(id,user, bandera = false)
+    {
+    	console.log("[clearClientTimeOut_Aut] [Clear] [ID Cliente] :: ", id, " :: Bandera :: ", bandera);
+
+    	if(bandera)
+    	{
+    		console.log("[clearClientTimeOut_Aut] [Clear] [Se detiene el timer y se elimina el objeto] :: ", bandera);
+    		clearTimeout(clientTimeoutControl_Aut[id].timeOut);
+    		delete clientTimeoutControl_Aut[id];
+	    }
+	    else
+	    {	    	
+	    	if(clientTimeoutControl_Aut && Object.keys(clientTimeoutControl_Aut).length > 0)
+	    	{
+	    		console.log("[clearClientTimeOut_Aut] [Clear] [Existe llave] :: " + clientTimeoutControl_Aut.hasOwnProperty(id));
+
+	    		if(clientTimeoutControl_Aut.hasOwnProperty(id))
+	    		{
+	    			console.log("[clearClientTimeOut_Aut] [Clear] [Se detiene el timer y se elimina el objeto] :: " + id);
+	    			
+	    			clearTimeout(clientTimeoutControl_Aut[id].timeOut);
+
+	    			localStorage.removeItem("bot_bci_"+id);
+					localStorage.removeItem("pregunta_rut"+id);
+					localStorage.removeItem("valida_vigencia"+id);
+					localStorage.removeItem("valida_vigencia_phone"+id)
+					localStorage.removeItem("intento"+id);
+					localStorage.removeItem("preguntas_EPA_"+user.id);
+					localStorage.removeItem("guardar_EPA_"+user.id);
+					localStorage.removeItem("intento_EPA"+id);
+					localStorage.removeItem("NOTIFICATION"+user.id);
+
+					funciones.registrar_aut_clientes(user);
+
+	    			delete clientTimeoutControl_Aut[id];
+	    		}
+	    	}
+	    }
+    }
 };
 
-var funciones = {	
-	validarHorario : async function()
-	{
-		var result = { status : false };
-
-        const result_hoario = await Horarios.find();
-
-		if (result_hoario.length < 1)  return result;
-
-		const result_msj = await BotMensajes.find({"tipo" : 1});
-
-		if (result_msj.length < 1 && result_msj[0].status == false)  return result.mensaje = "Error al obtener el mensaje";		
-	
-		result.status = await horario.validarHorario(result_hoario);
-		result.action = result_msj[0].action;
-		result.messages = result_msj[0].messages;
-
-		return result;
-    },
-    cargar_msj_incial : async function()
+var texto = {
+	cargar_msj_incial : async function()
 	{
 		var obj = {
     		action : "",
@@ -167,6 +199,32 @@ var funciones = {
 
 	    return obj;
     },
+    cargar_no_cliente: async function()
+    {
+    	var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 2});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
+    cargar_aut_exitoso: async function()
+    {
+    	var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 4});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
     cargar_preguntas_rut: async function()
 	{
 		var obj = "";
@@ -185,6 +243,19 @@ var funciones = {
 		var obj = "";
 
 	    const result = await BotMensajes.find({"status": true, "tipo" : 6});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    },
+    cargar_aut_errroneo: async function()
+    {
+    	var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 3});
 
 	    if (result.length >= 1)
 	    {
@@ -219,6 +290,40 @@ var funciones = {
 
 	    return obj;
     },
+	cargar_ya_registrado: async function()
+    {
+    	var obj = "";
+
+	    const result = await BotMensajes.find({"status": true, "tipo" : 13});
+
+	    if (result.length >= 1)
+	    {
+	    	obj = result[0];	    	
+	    }
+
+	    return obj;
+    }
+}
+
+var funciones = {	
+	validarHorario : async function()
+	{
+		var result = { status : false };
+
+        const result_hoario = await Horarios.find();
+
+		if (result_hoario.length < 1)  return result;
+
+		const result_msj = await BotMensajes.find({"tipo" : 1});
+
+		if (result_msj.length < 1 && result_msj[0].status == false)  return result.mensaje = "Error al obtener el mensaje";		
+	
+		result.status = await horario.validarHorario(result_hoario);
+		result.action = result_msj[0].action;
+		result.messages = result_msj[0].messages;
+
+		return result;
+    },
     registrar_preguntas_EPA: async function(e)
 	{
 		const reporte = new Reportes(
@@ -234,45 +339,6 @@ var funciones = {
 	    const result = await reporte.save();
 
 	    console.log("[Controller] :: [registrar_preguntas_EPA] :: " +  result.status);
-    },
-    cargar_no_cliente: async function()
-    {
-    	var obj = "";
-
-	    const result = await BotMensajes.find({"status": true, "tipo" : 2});
-
-	    if (result.length >= 1)
-	    {
-	    	obj = result[0];	    	
-	    }
-
-	    return obj;
-    },
-    cargar_aut_exitoso: async function()
-    {
-    	var obj = "";
-
-	    const result = await BotMensajes.find({"status": true, "tipo" : 4});
-
-	    if (result.length >= 1)
-	    {
-	    	obj = result[0];	    	
-	    }
-
-	    return obj;
-    },
-    cargar_aut_errroneo: async function()
-    {
-    	var obj = "";
-
-	    const result = await BotMensajes.find({"status": true, "tipo" : 3});
-
-	    if (result.length >= 1)
-	    {
-	    	obj = result[0];	    	
-	    }
-
-	    return obj;
     },
     validación_campos_rut: async function(e, valor)
     {
@@ -415,7 +481,8 @@ var funciones = {
 
     	var resultado = { "authValidity" : false };
 
-    	var data = { "rut": num.toLowerCase() };		
+    	var data = { "rut": num.toLowerCase() };
+    	//var data = { "phone": num };
 
 		var options = {
         	method : 'POST',
@@ -596,6 +663,26 @@ var funciones = {
 
 	    console.log("[Controller] :: [Intentos_clientes] :: " +  result.status);
     },
+    registrar_aut_clientes: async function(e)
+	{
+		var now = moment();
+    	now = now.tz("America/Santiago").format("YYYY-MM-DD HH:mm:ss");
+		now = moment(now).subtract(6, 'hours');
+  		now = moment(now).format("YYYY-MM-DD HH:mm:ss");
+
+		const aut_clientes = new Aut_clientes(
+	    {
+	    	id: e.id,
+		    usuario: e.name,
+		    status: e.status,
+			channel: e.channel,
+		    fecha: now
+	    });
+
+	    const result = await aut_clientes.save();
+
+	    console.log("[Controller] :: [registrar_aut_clientes] :: " +  result.status);
+    },
     validar_cliente_solem: async function(rut, numSerie)
 	{
 		var now = moment();
@@ -637,10 +724,12 @@ var funciones = {
 
         await axios(options).then(function (response)
         {
-		  	result_axios = response;	        
+		  	result_axios = response;
+
+		  	console.log("[controller] :: [funciones] :: [validar_cliente_solem] : [OK GET] :: [response] :: ", response.data);        
 		}).catch(function (error)
 		{
-        	console.log("[controller] :: [funciones] :: [validar_cliente_solem] : [catch] :: [error] :: ", error);
+        	console.log("[controller] :: [funciones] :: [validar_cliente_solem] : [catch GET] :: [error] :: ", error);
         	
         	obj.code = error.response.data.code;	
 		});
@@ -649,7 +738,7 @@ var funciones = {
         {
         	if(result_axios.data.status.status.code == 200 && result_axios.data.status.status.message == "OK")
         	{
-				var data = {
+        		var data = {
 					"code": "PERSON",
 				    "type": "GET",
 				    "subtype": "KBA",
@@ -675,6 +764,8 @@ var funciones = {
 				        }]
 				    }
 				};
+
+				console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] :: [Data] :: ", data);
 
 				var options = {
 		        	method : 'POST',
@@ -707,8 +798,9 @@ var funciones = {
 					}
 				}).catch(function (error)
 				{
-					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
-		        	obj.code = error.response.data.code;
+					//console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
+					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [request] :: ", error.response.data);
+		        	obj.code = error.response.data.status.code;
 				});
 		    }
 		    else
@@ -744,8 +836,243 @@ var funciones = {
 		}
 
     	return result;
+    },    
+    startClientTimeOut_Aut : async function(id,tel)
+    {
+    	console.log("[startClientTimeOut_Aut] [Aut Start Timer] [IDCliente] :: " + id);
+
+    	var get_config = await configuraciones.get_config();
+
+    	var tiempo = Math.floor(parseInt(get_config.validaty) * 60000);
+
+    	console.log("[startClientTimeOut_Aut] [EPA Start Timer] [Tiempo] :: " + tiempo);    	
+
+    	clientTimeoutControl_Aut[id] = {
+			timeOut: ""		  
+		};
+		 
+		clientTimeoutControl_Aut[id].timeOut = setTimeout( () =>
+		{
+			console.log("[startClientTimeOut_Aut] [Inicia el Timer] [setTimeout] :: " + id);
+			
+			configuraciones.clearClientTimeOut_Aut(id, tel);
+			
+		}, tiempo);				
     }
 }
 
-exports.funciones = funciones;
+var valid_clie = {
+	get_persona: async function(rut,tel)
+    {
+    	var e = "", canales = "";
+    	var get_config = await configuraciones.get_config();
+
+    	console.log("[controller] :: [get_persona] :: [RUT] :: ", rut, " - ", typeof rut);
+
+    	var resultado = { "status_persona" : false };
+
+    	var data = {
+    		"codigoEmpresa": "bci",
+		    "id": rut.toLowerCase() //"12345678-9"
+		};
+
+		console.log("[controller] :: [get_persona] :: [data] :: ", data);	
+
+		var options = {
+        	method : 'POST',
+			url : config.url_get_persona,
+			headers : { 
+				'Content-Type':'application/json',
+				'Authorization': config.authorization
+			},
+			data: data
+        };
+
+        console.log("[controller] :: [get_persona] :: [options] :: ", options);
+
+        await axios(options).then(function (response)
+        {
+        	console.log("[controller] :: [get_persona] :: [response] :: ", response);
+        	console.log("[controller] :: [get_persona] :: [response.status] :: ", response.status);
+
+		  	if(response.status == 200 && response.statusText == 'OK')
+	        {
+	        	console.log("[controller] :: [get_persona] :: [Object.keys(response.data).length] :: ", Object.keys(response.data).length);
+	        	if (Object.keys(response.data).length > 0)
+	        	{
+					e = response.data;
+	        		canales = response.data.canales;
+				}
+	        }
+		}).catch(function (error)
+		{
+			console.log("[controller] :: [get_persona] :: [catch] :: [error] :: ", error);
+        	resultado.status_persona = "No_Existe";
+		});
+
+		if(e != "")
+    	{
+    		console.log("[controller] :: [get_persona] :: [Hay datos - canales]", canales);
+
+    		for (var i = 0; i < canales.length; i++)
+			{
+				console.log("[controller] :: [get_persona] :: [canales[i]]", canales[i]);
+
+				if(canales[i].type == "whatsapp")
+				{
+					console.log("[controller] :: [get_persona] :: [canales[i].type] :: ", canales[i].type);
+
+					var valores = canales[i].values;
+
+					var flag_insert = false;
+
+					for (var j = 0; j < valores.length; j++)
+					{
+						console.log("[controller] :: [get_persona] :: [valores[j].key] :: ", valores[j].key," :: [valores[j]] :: ", tel);
+						
+						if(valores[j].key === tel)
+						{
+							console.log("[controller] :: [get_persona] :: [Existe el telefono]");
+							flag_insert = true;
+							resultado.status_persona = true;
+							break;
+						}						
+					}
+
+					if(!flag_insert)
+					{
+						console.log("[controller] :: [get_persona] :: [Numero Nuevo] :: ", tel);
+
+						var data_update = {
+							"codigoEmpresa": "bci",
+							"persona": {
+								"id": e.id,
+								"nombres": e.nombres,
+								"apellidos": e.apellidos,
+								"canales": e.canales,
+								"codigoEmpresa": "bci"
+							}
+						};
+
+						for (var i = 0; i < data_update.persona["canales"].length; i++)
+						{
+							if(data_update["persona"].canales[i].type == "whatsapp")
+							{
+								data_update["persona"].canales[i].values.push({"key": tel, "validado": true,});
+								console.log("[controller] :: [get_persona] :: [Se agrego array] :: ", data_update["persona"].canales[i].values);
+								break;
+							}
+						}
+
+						console.log("[controller] :: [get_update_persona] :: [data_update] :: ", data_update);
+						
+						var options_update = {
+				        	method : 'POST',
+							url : config.url_update_persona,
+							headers : { 
+								'Content-Type':'application/json',
+								'Authorization': config.authorization
+							},
+							data: data_update
+				        };
+
+				        await axios(options_update).then(function (response)
+				        {
+				        	console.log("[controller] :: [get_update_persona] :: [response ] :: ", response);
+
+						  	if(response.status == 200 && response.statusText == 'OK')
+					        {
+					        	resultado.status_persona = true;        	
+					        }
+						}).catch(function (error)
+						{
+							console.log("[controller] :: [get_update_persona] :: [catch] :: [error] :: ", error);
+							console.log("[controller] :: [get_update_persona] :: [catch] :: [error] :: [Code] :: ", error.response.data.code);
+							if(error.response.data.code == 99)
+							{
+								resultado.status_persona = "YA_REGISTRADO";
+							}
+						});
+
+				        console.log("[controller] :: [update_persona] :: [resultado] :: ", resultado);
+				        break;							        
+					}							
+				}
+			} 
+    	}
+    	else if(e == "")
+    	{
+    		resultado.status_persona = "No_Existe";
+    	}
+
+        console.log("[controller] :: [get_persona] :: [resultado] :: ", resultado.status_persona);
+
+        return resultado.status_persona;
+    },
+    update_persona: async function(e,key)
+    {
+    	var get_config = await configuraciones.get_config();
+
+    	console.log("[controller] :: [update_persona] :: [e] :: ", e);
+
+    	console.log("[controller] :: [update_persona] :: [key] :: ", key);
+
+    	var resultado = { "status" : false };
+
+    	var data = {
+			"codigoEmpresa": "bci",
+			"persona": {
+				"id": e.id,
+				"nombres": e.nombres,
+				"apellidos": e.apellidos,
+				"canales": e.canales,
+				"codigoEmpresa": "bci"
+			}
+		};
+
+		for (var i = 0; i < data.persona["canales"].length; i++)
+		{
+			if(data["persona"].canales[i].type == "whatsapp")
+			{
+				data["persona"].canales[i].values.push({"key": key, "validado": true,});
+				break;
+			}
+		}		
+
+		var options = {
+        	method : 'POST',
+			url : config.url_update_persona,
+			headers : { 
+				'Content-Type':'application/json',
+				'Authorization': config.authorization
+			},
+			data: data
+        };
+
+        console.log("[controller] :: [update_persona] :: [data ] :: ", data);
+
+        await axios(options).then(function (response)
+        {
+        	console.log("[controller] :: [update_persona] :: [response ] :: ", response);
+
+		  	if(response.status == 200 && response.statusText == 'OK')
+	        {
+	        	resultado = response.data;	        	
+	        }
+		}).catch(function (error)
+		{
+			console.log("[controller] :: [update_persona] :: [catch] :: [error] :: " + error.response.status);
+        	console.log("[controller] :: [update_persona] :: [catch] :: [error] :: " + error.response.data);
+        	resultado.authValidity = error.response.data.code;
+		});
+
+        console.log("[controller] :: [update_persona] :: [resultado] :: ", resultado);
+
+        return resultado;
+    },
+}
+
 exports.configuraciones = configuraciones;
+exports.valid_clie = valid_clie;
+exports.funciones = funciones;
+exports.texto = texto;
