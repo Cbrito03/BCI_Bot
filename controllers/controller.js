@@ -568,7 +568,7 @@ var funciones = {
 
     	var get_config = await configuraciones.get_config();
 
-    	var msj_fin_EPA = await this.cargar_fin_EPA();
+    	var msj_fin_EPA = await texto.cargar_fin_EPA();
 
     	var tiempo = Math.floor(parseInt(get_config.timer_EPA) * 60000);
 
