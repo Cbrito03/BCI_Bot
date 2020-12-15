@@ -400,9 +400,9 @@ router.post('/message', async (req, res) => {
 
 											console.log("Resultado de CEDU :::::::: code :: " + axios_CEDU.code + " :: status :: " + axios_CEDU.status);
 
-											if(/*axios_CEDU.status*/ true)
+											if(axios_CEDU.status)
 											{
-												if(axios_CEDU.code == 200 || axios_CEDU.code == 409 || axios_CEDU.code == 403)
+												if(axios_CEDU.code == 200 || axios_CEDU.code == 409)
 												{
 													await local_function.si_autenticado();
 
@@ -438,7 +438,7 @@ router.post('/message', async (req, res) => {
 
 													console.log("Resultado de CEDU :::::::: " + axios_CEDU.code);
 
-													if(axios_CEDU.code == 406 &&  parseInt(num_intentos) <= 1 )
+													if((axios_CEDU.code == 500 || axios_CEDU.code == 406) &&  parseInt(num_intentos) <= 1 )
 													{                            
 														resultado.action = msj_aut_erroneo.action;
 

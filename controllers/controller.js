@@ -749,12 +749,11 @@ var funciones = {
         	if(result_axios.data.status.status.code == 200 && result_axios.data.status.status.message == "OK")
         	{
         		var data = {
-					"code": "PERSON",
-				    "type": "GET",
-				    "subtype": "KBA",
+					"code": "DOCUMENT",
+				    "type": "VALIDATE",
+				    "subtype": "EXPIRY",
 				    "createdAt": result_axios.data.createdAt,
 				   	"client": {
-				   		'operationId': 1234567,
 				        'companyId': result_axios.data.client.companyId,
 				        'username': result_axios.data.client.username				        
 				    },
@@ -766,12 +765,7 @@ var funciones = {
 				                    "personalNumber": rut,
 				                    "number": numSerie
 				            }]
-				        },
-				        "authenticationFactors": [{
-				            "type":"KBA",
-				            "subtype":"KBA",
-				            "questionType": "DYNAMIC"
-				        }]
+				        }
 				    }
 				};
 
@@ -781,7 +775,7 @@ var funciones = {
 		        	method : 'POST',
 		        	strictSSL: false,
 		        	 httpsAgent: agent,
-					url : config.url_solem + "kba/get",
+					url : config.url_solem + "document/validate",
 					headers : { 
 						'Content-Type' : 'application/json',
 						'X-Auth-Token' : get_config.token_session,
@@ -797,8 +791,20 @@ var funciones = {
 
 		        	if(response.status == 200)
 					{
-						obj.code = response.data.status.status.code;
-						obj.status = true;
+						var status_doc = response.data.data.digitalIdentity.identityDocuments[0].statusDocument;
+						
+						console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [200] :: [status_doc] :: ", status_doc);
+						
+						if(status_doc == "VERIFICACION_OK")
+						{
+							obj.code = response.data.status.status.code;
+							obj.status = true;
+						}
+						else if(status_doc == "NO_VERIFICADO")
+						{
+							obj.code = esponse.data.status.status.code;
+							obj.status = true;
+						}						
 					}
 					else
 					{
