@@ -815,8 +815,8 @@ var funciones = {
 				}).catch(function (error)
 				{
 					//console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
-					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [request] :: ", error.response.data);
-		        	obj.code = error.response.data.status.code;
+					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
+		        	obj.code = 400;
 				});
 		    }
 		    else
