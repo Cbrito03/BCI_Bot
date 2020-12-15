@@ -748,7 +748,7 @@ var funciones = {
         {
         	if(result_axios.data.status.status.code == 200 && result_axios.data.status.status.message == "OK")
         	{
-        		var data = {
+        		var datos = {
 					"code": "DOCUMENT",
 				    "type": "VALIDATE",
 				    "subtype": "EXPIRY",
@@ -771,7 +771,7 @@ var funciones = {
 
 				console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] :: [Data] :: ", data);
 
-				var options = {
+				var optiones = {
 		        	method : 'POST',
 		        	strictSSL: false,
 		        	 httpsAgent: agent,
@@ -781,12 +781,13 @@ var funciones = {
 						'X-Auth-Token' : get_config.token_session,
 						'X-Session-Token' : result_axios.data.client.token
 					},
-					data: data
+					data: datos
 		        };
 
-		        await axios(options).then(function (response)
+		        await axios(optiones).then(function (response)
 		        {
 		        	console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then] :: [RUT] ::", rut, " :: [NUM] ::", numSerie);
+		        	console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then] :: [response.status] :: ", response.status);
 		        	console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then] :: [response.data.status] :: ", response.data.status);
 
 		        	if(response.status == 200)
@@ -802,7 +803,7 @@ var funciones = {
 						}
 						else if(status_doc == "NO_VERIFICADO")
 						{
-							obj.code = esponse.data.status.status.code;
+							obj.code = response.data.status.status.code;
 							obj.status = true;
 						}						
 					}
@@ -817,6 +818,7 @@ var funciones = {
 					//console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
 					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
 		        	obj.code = 400;
+		        	obj.status = false;
 				});
 		    }
 		    else
