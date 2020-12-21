@@ -12,7 +12,8 @@ var intentos_clientesSchema = new Schema({
     },
     channel:{
         type: Schema.Types.String,
-        required: true
+        rrequired: false,
+        default: "WhatsApp"
     },
     intento:{
         type: Schema.Types.Boolean,

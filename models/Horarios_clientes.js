@@ -12,7 +12,8 @@ var hoarios_clientesSchema = new Schema({
     },
     channel:{
         type: Schema.Types.String,
-        required: true
+        required: false,
+        default: "WhatsApp"
     },
     horario:{
         type: Schema.Types.Boolean,

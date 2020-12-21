@@ -20,7 +20,8 @@ var reporteSchema = new Schema({
     },
 	channel:{
 		type: Schema.Types.String,
-		required: true
+		required: false,
+        default: "WhatsApp"
 	},
     respuesta_1:{
         type: Schema.Types.String,
