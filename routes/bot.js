@@ -61,6 +61,8 @@ router.post('/message', async (req, res) => {
 
 	console.log("lastInteractionFinishTime :: " + fechaStamp2 + ":: lastMessageTime :: "+fechaStamp+" ::fecha Actual :: " + fecha_actual);
 
+	console.log("[BCI] :: [message] :: [contexto] :: ", context);
+
 	var diff = fecha2.diff(fechaStamp, 'h'); 
 	console.log("diff :: " + diff + " Tipo " + typeof diff);
 
@@ -788,18 +790,6 @@ router.post('/terminateConversation', async (req, res) => {
   }
 
   res.status(200).json(resultado);
-});
-
-router.post('/test', async (req, res) => {
-
-  var rut = req.body.rut;
-  var numSerie = req.body.numSerie;
-  
-  var validar_cliente_solem = await controlador.funciones.validar_cliente_solem(rut,numSerie);
-  
-  var respuesta = validar_cliente_solem;
-
-  res.status(200).send(respuesta);
 });
 
 router.get('/test', async (req, res) => {
