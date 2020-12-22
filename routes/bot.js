@@ -227,7 +227,7 @@ router.post('/message', async (req, res) => {
 										"id" : user.id,
 										"conversationId" : conversationID,
 										"name" : user.name,
-										"channel" : context.channel
+										"channel" : "WhastApp"//context.channel
 									}
 
 									await controlador.funciones.registrar_preguntas_EPA(rest_EPA);
@@ -261,7 +261,7 @@ router.post('/message', async (req, res) => {
 										"id" : user.id,                                    
 										"name" : user.name,
 										"horario" : horarios.status,
-										"channel" : context.channel
+										"channel" : "WhastApp"//context.channel
 									}
 
 									await controlador.funciones.registrar_horarios_clientes(rest_hr);
@@ -320,7 +320,7 @@ router.post('/message', async (req, res) => {
 														"id" : user.id,                                    
 														"name" : user.name,
 														"status" : false,
-														"channel" : context.channel
+														"channel" : "WhastApp"//context.channel
 													}
 
 													controlador.funciones.startClientTimeOut_Aut(conversationID, data_aut);                    
@@ -410,7 +410,7 @@ router.post('/message', async (req, res) => {
 														"id" : user.id,                                    
 														"name" : user.name,
 														"status" : false,
-														"channel" : context.channel
+														"channel" : "WhastApp"//context.channel
 													}
 
 													controlador.funciones.startClientTimeOut_Aut(conversationID, data_aut);
@@ -458,7 +458,7 @@ router.post('/message', async (req, res) => {
 															"id" : user.id,                                    
 															"name" : user.name,
 															"intento" : true,
-															"channel" : context.channel
+															"channel" : "WhastApp"//context.channel
 														}
 
 														await controlador.funciones.registrar_intentos_clientes(rest_int);
@@ -517,7 +517,7 @@ router.post('/message', async (req, res) => {
 											"id" : user.id,                                    
 											"name" : user.name,
 											"status" : false,
-											"channel" : context.channel
+											"channel" : "WhastApp"//context.channel
 										}
 
 										await controlador.configuraciones.clearClientTimeOut_Aut(conversationID,data_aut,true);
@@ -572,7 +572,7 @@ router.post('/message', async (req, res) => {
 									"id" : user.id,                                    
 									"name" : user.name,
 									"horario" : horarios.status,
-									"channel" : context.channel
+									"channel" : "WhastApp"//context.channel
 								}
 
 								await controlador.funciones.registrar_horarios_clientes(rest_hr);
