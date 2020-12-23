@@ -861,7 +861,7 @@ var funciones = {
 
     	var get_config = await configuraciones.get_config();
 
-    	var tiempo = Math.floor(parseInt(get_config.validaty) * 60000);
+    	var tiempo = Math.floor(parseInt(get_config.timer_EPA) * 60000);
 
     	console.log("[startClientTimeOut_Aut] [EPA Start Timer] [Tiempo] :: " + tiempo);    	
 
