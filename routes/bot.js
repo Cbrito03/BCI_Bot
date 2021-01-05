@@ -415,7 +415,7 @@ router.post('/message', async (req, res) => {
 														"channel" : "WhastApp"//context.channel
 													}
 
-													controlador.funciones.startClientTimeOut_Aut(conversationID, data_aut);
+													await controlador.funciones.startClientTimeOut_Aut(conversationID, data_aut);
 
 													localStorage.setItem("pregunta_rut"+conversationID, ["transferir",true]);
 
@@ -440,7 +440,7 @@ router.post('/message', async (req, res) => {
 
 													console.log("Resultado de CEDU :::::::: " + axios_CEDU.code);
 
-													if((axios_CEDU.code == 500 || axios_CEDU.code == 406) &&  parseInt(num_intentos) <= 1 )
+													if((axios_CEDU.code == 400 || axios_CEDU.code == 500 || axios_CEDU.code == 406) &&  parseInt(num_intentos) <= 1 )
 													{                            
 														resultado.action = msj_aut_erroneo.action;
 
@@ -464,6 +464,15 @@ router.post('/message', async (req, res) => {
 														}
 
 														await controlador.funciones.registrar_intentos_clientes(rest_int);
+
+														var data_aut = {
+															"id" : user.id,                                    
+															"name" : user.name,
+															"status" : false,
+															"channel" : "WhastApp"//context.channel
+														}
+
+														await controlador.funciones.startClientTimeOut_Aut(conversationID, data_aut);
 
 														localStorage.setItem("pregunta_rut"+conversationID, ["transferir","NOAUT"]);
 
