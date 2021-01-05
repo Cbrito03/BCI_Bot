@@ -810,7 +810,7 @@ var funciones = {
 					else
 					{
 						obj.code = 400;
-						obj.status = false;
+						obj.status = true;
 						console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [then ELSE] :: [response] :: ", response);
 					}
 				}).catch(function (error)
@@ -818,7 +818,7 @@ var funciones = {
 					//console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
 					console.log("[controller] :: [funciones] :: [validar_cliente_solem GET] : [catch] :: [error] :: ", error);
 		        	obj.code = 400;
-		        	obj.status = false;
+		        	obj.status = true;
 				});
 		    }
 		    else
