@@ -292,8 +292,11 @@ router.post('/message', async (req, res) => {
 
 										if(bandera_vali_rut)
 										{
-											var str1 = mensaje.substr(0, 8) + "-";
-											var str2 = mensaje.substr(8, 9);
+											var num1 = mensaje.length;
+										    var num2 = num1 - 1;
+
+											var str1 = mensaje.substr(0, num2) + "-";
+											var str2 = mensaje.substr(num2, num1);
 
 											var mensaje_rut = str1 + str2;
 
